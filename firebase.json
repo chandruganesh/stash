@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["**/.*"],
+    "headers": [
+      {"source": "**", "headers": [{"key": "X-Frame-Options", "value": "DENY"}, {"key": "Referrer-Policy", "value": "no-referrer"}]},
+      {"source": "sw.js", "headers": [{"key": "Cache-Control", "value": "no-cache"}]}
+    ]
+  }
+}

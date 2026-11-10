@@ -1,0 +1,1754 @@
+{
+"updated": "2026-11-10",
+"shelves": {
+"agents": {
+"name": "AI Agents & Harness Engineering",
+"emoji": "🤖",
+"color": "#7c5cff",
+"short": "Agents"
+},
+"llm": {
+"name": "LLMs & ML Foundations",
+"emoji": "🧠",
+"color": "#ff5c8a",
+"short": "LLMs"
+},
+"claude": {
+"name": "Claude & AI Tooling",
+"emoji": "🛠️",
+"color": "#ff9f43",
+"short": "Claude"
+},
+"sysdesign": {
+"name": "System Design & Backend",
+"emoji": "🏗️",
+"color": "#00c2a8",
+"short": "Sys Design"
+},
+"devops": {
+"name": "Cloud, Docker & Kubernetes",
+"emoji": "☸️",
+"color": "#3d8bff",
+"short": "Cloud/K8s"
+},
+"dsa": {
+"name": "DSA & CS Fundamentals",
+"emoji": "🧮",
+"color": "#a3e635",
+"short": "DSA"
+},
+"interview": {
+"name": "Interview Prep",
+"emoji": "🎯",
+"color": "#f43f5e",
+"short": "Interview"
+},
+"jobs": {
+"name": "Job Hunt & Hiring Lists",
+"emoji": "💼",
+"color": "#fbbf24",
+"short": "Jobs"
+},
+"outreach": {
+"name": "Cold Outreach & Personal Brand",
+"emoji": "✉️",
+"color": "#22d3ee",
+"short": "Outreach"
+},
+"product": {
+"name": "Building Products & Side Projects",
+"emoji": "🚀",
+"color": "#e879f9",
+"short": "Build"
+},
+"hardware": {
+"name": "Hardware & On-device AI",
+"emoji": "🔌",
+"color": "#94a3b8",
+"short": "Hardware"
+},
+"security": {
+"name": "Security & Networking",
+"emoji": "🛡️",
+"color": "#34d399",
+"short": "Security"
+},
+"ui": {
+"name": "UI Kits & Handy Sites",
+"emoji": "🎨",
+"color": "#fb7185",
+"short": "Tools"
+},
+"career": {
+"name": "Career & Mindset",
+"emoji": "🧭",
+"color": "#c4b5fd",
+"short": "Career"
+}
+},
+"items": [
+{
+"id": "2120185628776165467",
+"u": "0xkichiro/status/2120185628776165467",
+"h": "@0xkichiro",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Karpathy's 2-hour lecture on agents",
+"su": "A free lecture that walks from agents to loops, graphs and self-improving systems. The quoted article explains the harness, loop and graph layers between a model and an agent that actually works.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2120146689352986963",
+"u": "pallavishekhar_/status/2120146689352986963",
+"h": "@pallavishekhar_",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "llm",
+"ty": "article",
+"ti": "Evolution of LLM Architecture",
+"su": "A visual write-up of how LLM architectures changed over time, from the original transformer to today's designs.",
+"ln": [
+[
+"Read the article",
+"https://t.co/YyTsnEaPR8"
+]
+]
+},
+{
+"id": "2119845903800635435",
+"u": "aslambeg84/status/2119845903800635435",
+"h": "@aslambeg84",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "sysdesign",
+"ty": "thread",
+"ti": "How does a DB find one row among millions?",
+"su": "Asks how a database finds one record in milliseconds without scanning every row. The replies get into indexing (B-trees, hashing) as a classic interview question.",
+"ln": []
+},
+{
+"id": "2119838426916941956",
+"u": "aslambeg84/status/2119838426916941956",
+"h": "@aslambeg84",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "sysdesign",
+"ty": "thread",
+"ti": "100K requests/sec: what do you add first?",
+"su": "A poll on scaling an API suddenly hit with 100K RPS: Redis, Kafka, a load balancer or Kubernetes. Good for practising trade-off reasoning.",
+"ln": []
+},
+{
+"id": "2120024020699754887",
+"u": "ConsciousRide/status/2120024020699754887",
+"h": "@ConsciousRide",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "agents",
+"ty": "thread",
+"ti": "What an agentic AI engineer should learn in 2026",
+"su": "A checklist that starts with context engineering and memory (what enters the window, what gets summarised or retrieved), then tool design and more.",
+"ln": []
+},
+{
+"id": "2119817320810057827",
+"u": "kmeanskaran/status/2119817320810057827",
+"h": "@kmeanskaran",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "A full ML team built from AI agents (Google ADK + Gemini)",
+"su": "A demo where agents handle data analysis, feature engineering, training, evaluation, FastAPI serving and versioning on Google Cloud.",
+"ln": [],
+"im": "amplify_video_thumb/2119808291446702081/img/f3JiwviSsyTCwQ13.jpg",
+"v": 1
+},
+{
+"id": "2120066713891062062",
+"u": "Aditya_181105/status/2120066713891062062",
+"h": "@Aditya_181105",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "interview",
+"ty": "thread",
+"ti": "Must-read papers for AI engineer interviews",
+"su": "A reading list covering Attention Is All You Need, LoRA, PEFT, ViT, VAEs, GANs and more.",
+"ln": []
+},
+{
+"id": "2120023703388074343",
+"u": "stfu_aayushiii/status/2120023703388074343",
+"h": "@stfu_aayushiii",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "llm",
+"ty": "site",
+"ti": "AI Engineering From Scratch",
+"su": "A free site that teaches the AI/ML engineering path step by step. You saved it twice, so it's clearly a keeper.",
+"ln": [
+[
+"aiengineeringfromscratch.com",
+"https://t.co/wHnObWlsNj"
+]
+]
+},
+{
+"id": "2120071464468594766",
+"u": "shubh19/status/2120071464468594766",
+"h": "@shubh19",
+"d": "2026-11-10",
+"s": "bl",
+"sh": "devops",
+"ty": "thread",
+"ti": "Docker + Kubernetes in 3 weeks",
+"su": "A plan: week 1 images and layers (write 3 Dockerfiles), week 2 Compose with app + Postgres + Redis, week 3 pods, deployments and services on kind. Then kill a pod and read why.",
+"ln": []
+},
+{
+"id": "2119870105832284220",
+"u": "prathamgrv/status/2119870105832284220",
+"h": "@prathamgrv",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "llm",
+"ty": "site",
+"ti": "JAX study plan for ML systems",
+"su": "Learn the systems underneath: per-example gradients with vmap, mixed precision, a paged KV cache and speculative decoding, on TensorTonic.",
+"ln": [
+[
+"tensortonic.com",
+"https://tensortonic.com"
+]
+]
+},
+{
+"id": "2119778263249670161",
+"u": "yourclouddude/status/2119778263249670161",
+"h": "@yourclouddude",
+"d": "2026-11-09",
+"s": "b",
+"sh": "devops",
+"ty": "image",
+"ti": "AWS explained in one visual",
+"su": "A one-image cheat sheet of how the core AWS services fit together.",
+"ln": [],
+"im": "media/HWr2yPFX0AAj2Be?format=jpg&name=small"
+},
+{
+"id": "2119886157336940610",
+"u": "thebeautyofsaas/status/2119886157336940610",
+"h": "@thebeautyofsaas",
+"d": "2026-11-09",
+"s": "b",
+"sh": "career",
+"ty": "article",
+"ti": "'Nobody warns you that 27 changes everything'",
+"su": "A widely shared Substack essay on the mid-to-late-20s career and life shift.",
+"ln": []
+},
+{
+"id": "2119737605571195180",
+"u": "Timmysofine/status/2119737605571195180",
+"h": "@Timmysofine",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "interview",
+"ty": "image",
+"ti": "Complete interview prep guide",
+"su": "A one-page guide to preparing before, during and after an interview.",
+"ln": [],
+"im": "media/HWrSGbrWQAAbckS?format=jpg&name=small"
+},
+{
+"id": "2119742388436631811",
+"u": "Keshavdotdev/status/2119742388436631811",
+"h": "@Keshavdotdev",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "sysdesign",
+"ty": "article",
+"ti": "When a from-scratch backend meets a tiny EC2",
+"su": "A startup engineer's write-up on what broke when deploying their backend to a small EC2 instance, and the lessons learned.",
+"ln": []
+},
+{
+"id": "2119426394190909894",
+"u": "jessicaonweb/status/2119426394190909894",
+"h": "@jessicaonweb",
+"d": "2026-11-08",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Andrew Ng at Stanford: agents that improve on their own",
+"su": "A 2-hour talk arguing that agent graphs and harnesses will replace hand-written prompting.",
+"ln": [],
+"im": "amplify_video_thumb/2119413786696114176/img/2KCRpz6PtHE6izdu.jpg",
+"v": 1
+},
+{
+"id": "2119499665901310450",
+"u": "munnamungara/status/2119499665901310450",
+"h": "@munnamungara",
+"d": "2026-11-08",
+"s": "bl",
+"sh": "devops",
+"ty": "post",
+"ti": "Upcoming Kubernetes fundamentals sessions",
+"su": "A creator announcing practical K8s sessions focused on the why, not just the commands. Worth watching for the schedule.",
+"ln": []
+},
+{
+"id": "2118802399452147901",
+"u": "sjgoedecke/status/2118802399452147901",
+"h": "@sjgoedecke",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "career",
+"ty": "article",
+"ti": "The senior engineer who says 'no'",
+"su": "On the staff-engineer archetype whose job is to block complexity and keep code to a minimum, since code is a liability.",
+"ln": [],
+"im": "media/HWd_jVCWkAA4oLG?format=png&name=360x360"
+},
+{
+"id": "2119285133668991144",
+"u": "parascodes/status/2119285133668991144",
+"h": "@parascodes",
+"d": "2026-11-08",
+"s": "bl",
+"sh": "product",
+"ty": "thread",
+"ti": "A month of shipping + an open source / GSoC guide",
+"su": "Portfolio launch, a Homebrew package fixing bits/stdc++.h on macOS, and a series on getting started with open source and GSoC.",
+"ln": [
+[
+"Portfolio",
+"https://t.co/HrIVGfvtxE"
+],
+[
+"cp-mac on GitHub",
+"https://t.co/6wZ3yk8gWm"
+]
+]
+},
+{
+"id": "2119106909919674598",
+"u": "0xSanabi/status/2119106909919674598",
+"h": "@0xSanabi",
+"d": "2026-11-07",
+"s": "bl",
+"sh": "career",
+"ty": "video",
+"ti": "Dario Amodei: what should a graduate do now?",
+"su": "Anthropic's CEO on AI taking entry-level work. The quoted thread notes that most agent loops have a trigger but lack checks, state or an exit condition.",
+"ln": [],
+"im": "amplify_video_thumb/2119102712004349952/img/ISgatlIMGj6dTz4W.jpg",
+"v": 1
+},
+{
+"id": "2119083309896524234",
+"u": "celineodier/status/2119083309896524234",
+"h": "@celineodier",
+"d": "2026-11-07",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "Complete 1-hour Claude course",
+"su": "A full walkthrough of creating and automating things with Claude, one to save for a free evening.",
+"ln": [],
+"im": "amplify_video_thumb/2119082013994909696/img/B_cOy5OC2pwnmGeN.jpg",
+"v": 1
+},
+{
+"id": "2119098703034110277",
+"u": "0xkichiro/status/2119098703034110277",
+"h": "@0xkichiro",
+"d": "2026-11-07",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "Karpathy in 4 minutes: the real AI skill gap",
+"su": "A short clip arguing that most people use AI as a chatbot, while the real gap is in how you set up and direct it.",
+"ln": [],
+"im": "amplify_video_thumb/2119096351417831424/img/CxeVBC9_S3LB4utw.jpg",
+"v": 1
+},
+{
+"id": "2119273373167706607",
+"u": "prabhat_pgp/status/2119273373167706607",
+"h": "@prabhat_pgp",
+"d": "2026-11-08",
+"s": "bl",
+"sh": "sysdesign",
+"ty": "article",
+"ti": "Instagram system design (HLD)",
+"su": "A high-level design walkthrough of Instagram: feed, media storage, fan-out and scaling.",
+"ln": [
+[
+"Open the HLD",
+"https://t.co/oHd5AJyelm"
+]
+]
+},
+{
+"id": "2119021950819512707",
+"u": "coolcoder56/status/2119021950819512707",
+"h": "@coolcoder56",
+"d": "2026-11-07",
+"s": "b",
+"sh": "interview",
+"ty": "thread",
+"ti": "OpenAI software engineer interview experience",
+"su": "A first-hand account of the OpenAI SWE interview loop.",
+"ln": []
+},
+{
+"id": "2118757548287287639",
+"u": "alex_prompter/status/2118757548287287639",
+"h": "@alex_prompter",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "product",
+"ty": "thread",
+"ti": "12 questions executives ask about AI implementation",
+"su": "From 100+ calls with CEOs, CFOs and CTOs: where to start (one workflow your customer feels first), and 11 more answers. Useful for client pitches.",
+"ln": []
+},
+{
+"id": "2118712158821171636",
+"u": "LunarResearcher/status/2118712158821171636",
+"h": "@LunarResearcher",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Anthropic engineers' Stanford lecture on agents",
+"su": "A 2-hour explanation that runs chats → prompts → agents → loops → self-improving systems, aimed at beginners and builders alike.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2118667415093653956",
+"u": "AvinashSingh_20/status/2118667415093653956",
+"h": "@AvinashSingh_20",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "jobs",
+"ty": "sheet",
+"ti": "Visa-sponsoring tech companies (US, EU, Japan, UK)",
+"su": "Google Sheets listing companies that sponsor tech visas by region, plus hidden H1B sponsors.",
+"ln": [
+[
+"US sponsors",
+"https://t.co/Uz6NFdzPsL"
+],
+[
+"Europe sponsors",
+"https://t.co/nFGVrn01lY"
+],
+[
+"Japan sponsors",
+"https://t.co/Iy7Pd1A5kT"
+],
+[
+"UK sponsors",
+"https://t.co/OwFHYNMJ5F"
+]
+]
+},
+{
+"id": "2118694920068214786",
+"u": "ryouxbt/status/2118694920068214786",
+"h": "@ryouxbt",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "41-min workshop: agents that write code that doesn't break",
+"su": "Builds the system from prompts → agent skills → harness. The quoted thread explains which layer (harness, loop or graph) to fix first.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2118344431346553194",
+"u": "infalliblexbt/status/2118344431346553194",
+"h": "@infalliblexbt",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "llm",
+"ty": "video",
+"ti": "Stanford: building LLMs from scratch (2 hrs)",
+"su": "Timestamped: tokenization (0:00), decoding (25:44), training pipeline (35:40) and beyond.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2118312387254034690",
+"u": "suraj_sharma14/status/2118312387254034690",
+"h": "@suraj_sharma14",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "llm",
+"ty": "thread",
+"ti": "Roadmap: Applied LLM engineer",
+"su": "Stage 1 covers token math, context windows, sampling, SSE streaming, cost-per-call and retry/backoff, with a build project for each stage.",
+"ln": []
+},
+{
+"id": "2118018697499435077",
+"u": "rishabhkio/status/2118018697499435077",
+"h": "@rishabhkio",
+"d": "2026-11-04",
+"s": "bl",
+"sh": "hardware",
+"ty": "video",
+"ti": "An AirPods case turned into a mouse",
+"su": "A fun hardware hack, shared as an example of the kind of project that gets you hired.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2118519047457546367",
+"u": "huxlab/status/2118519047457546367",
+"h": "@huxlab",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "llm",
+"ty": "video",
+"ti": "How ChatGPT & Claude are built (Stanford, 2h34m)",
+"su": "End to end, from tokenization and BPE through the Transformer to training.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2118627347402531323",
+"u": "maanas_tyagi/status/2118627347402531323",
+"h": "@maanas_tyagi",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "llm",
+"ty": "video",
+"ti": "ML Foundations for AI Engineers (34 min)",
+"su": "A YouTube refresher on the ML basics every AI engineer should keep sharp.",
+"ln": []
+},
+{
+"id": "2118572665242075141",
+"u": "Ray99Bimal/status/2118572665242075141",
+"h": "@Ray99Bimal",
+"d": "2026-11-06",
+"s": "bl",
+"sh": "product",
+"ty": "thread",
+"ti": "'Tiny AWS' in 10K lines of Go + Rust",
+"su": "A pitch for systems programming: a mini cloud built with no Docker and no VMs, CLI only.",
+"ln": []
+},
+{
+"id": "2118259671337508911",
+"u": "adnaannasir_/status/2118259671337508911",
+"h": "@adnaannasir_",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "career",
+"ty": "image",
+"ti": "Advice for developers for the next 10 years",
+"su": "A screenshot of AI-generated career advice for software developers.",
+"ln": [],
+"im": "media/HWWR7pWbsAAMvgp?format=jpg&name=360x360"
+},
+{
+"id": "2118419644209828151",
+"u": "AnatoliKopadze/status/2118419644209828151",
+"h": "@AnatoliKopadze",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Google's free 2-hr course on harness engineering",
+"su": "Harness basics (0:29), your first agent (11:08), eval engineering (28:08), loop engineering (1:00:13).",
+"ln": [],
+"im": "amplify_video_thumb/2118413020208488448/img/oz6_MjjgE45kUAhD.jpg",
+"v": 1
+},
+{
+"id": "2118450049680052656",
+"u": "undefinedKi/status/2118450049680052656",
+"h": "@undefinedKi",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "agents",
+"ty": "thread",
+"ti": "4 prompts for an agent that upgrades itself overnight",
+"su": "It reviews the day's chats, logs failures, saves what worked and updates its memory for the next session.",
+"ln": [],
+"im": "media/HWY-PAMXUAA4f_s?format=png&name=small"
+},
+{
+"id": "2118220318326264075",
+"u": "ayesha_fatiima/status/2118220318326264075",
+"h": "@ayesha_fatiima",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "interview",
+"ty": "thread",
+"ti": "5 rounds, barely any DSA",
+"su": "What a real-world software engineering interview loop looks like today.",
+"ln": []
+},
+{
+"id": "2118263114852639155",
+"u": "_vmlops/status/2118263114852639155",
+"h": "@_vmlops",
+"d": "2026-11-05",
+"s": "bl",
+"sh": "interview",
+"ty": "thread",
+"ti": "'How would you stop hallucinations?'",
+"su": "Why 'better prompts and a bigger model' falls short, and the answer that actually gets AI engineers hired.",
+"ln": []
+},
+{
+"id": "2117898279094780347",
+"u": "the_Lawrenz/status/2117898279094780347",
+"h": "@the_Lawrenz",
+"d": "2026-11-04",
+"s": "bl",
+"sh": "jobs",
+"ty": "site",
+"ti": "fal.ai careers",
+"su": "Open roles at fal.ai, a generative-media infrastructure company.",
+"ln": [
+[
+"fal.ai/careers",
+"https://t.co/W9KvVWcCrp"
+]
+]
+},
+{
+"id": "2117595433287786621",
+"u": "eng_khairallah1/status/2117595433287786621",
+"h": "@eng_khairallah1",
+"d": "2026-11-03",
+"s": "bl",
+"sh": "claude",
+"ty": "thread",
+"ti": "A prompt that builds your first AI agent team",
+"su": "A copy-paste setup for agents, prompts and workflows. A similar version is also saved for one-person businesses.",
+"ln": []
+},
+{
+"id": "2117586671613124934",
+"u": "ai_explorer25/status/2117586671613124934",
+"h": "@ai_explorer25",
+"d": "2026-11-03",
+"s": "b",
+"sh": "agents",
+"ty": "video",
+"ti": "Andrew Ng: harnesses with loops and graphs",
+"su": "A 1-hour Stanford lecture: agent → harness → feedback → loops → graphs → self-improving systems.",
+"ln": [],
+"im": "amplify_video_thumb/2117585826632925184/img/RoEKX9IPzntgs65G.jpg",
+"v": 1
+},
+{
+"id": "2117689327203537165",
+"u": "undefinedKi/status/2117689327203537165",
+"h": "@undefinedKi",
+"d": "2026-11-03",
+"s": "bl",
+"sh": "agents",
+"ty": "site",
+"ti": "Second Brain OS: AI agents in 15 minutes",
+"su": "An interactive site explaining how AI agents work, pitched as a 15-minute deep dive.",
+"ln": [
+[
+"secondbrainos.dev",
+"https://t.co/TNypD7AlkZ"
+]
+],
+"im": "media/HWOKoTmXAAAXHQo?format=jpg&name=small"
+},
+{
+"id": "2117318031772647765",
+"u": "shikamarutsai/status/2117318031772647765",
+"h": "@shikamarutsai",
+"d": "2026-11-02",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Harness engineering over forcing agents",
+"su": "The quoted 7-layer setup covers saving progress, verifying results and reusing workflows on long runs.",
+"ln": [],
+"im": "amplify_video_thumb/2117312070802722816/img/-4ycy2UzHcrtPByQ.jpg",
+"v": 1
+},
+{
+"id": "2117441201716826379",
+"u": "RDRembert/status/2117441201716826379",
+"h": "@RDRembert",
+"d": "2026-11-03",
+"s": "bl",
+"sh": "jobs",
+"ty": "post",
+"ti": "Anthropic Residency applications",
+"su": "A paid, fixed-term research programme open to founders and staff-level engineers, with no ML background required. Check the deadline.",
+"ln": []
+},
+{
+"id": "2117171849851531337",
+"u": "techyoutbe/status/2117171849851531337",
+"h": "@techyoutbe",
+"d": "2026-11-02",
+"s": "bl",
+"sh": "career",
+"ty": "image",
+"ti": "Agentic AI engineer portfolio blueprint",
+"su": "A visual plan for the projects and skills to show in an agentic AI portfolio.",
+"ln": [],
+"im": "media/HWGzojFbsAAZdvb?format=jpg&name=360x360"
+},
+{
+"id": "2117074214083838004",
+"u": "suraj_sharma14/status/2117074214083838004",
+"h": "@suraj_sharma14",
+"d": "2026-11-02",
+"s": "bl",
+"sh": "product",
+"ty": "thread",
+"ti": "15 agentic AI projects that stand out on a resume",
+"su": "Built for Forward Deployed Engineer roles that ask for proof you've shipped agents, starting with a support agent that reads docs and answers tickets.",
+"ln": []
+},
+{
+"id": "2116924335285838314",
+"u": "0xkichiro/status/2116924335285838314",
+"h": "@0xkichiro",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "Andrew Ng: 97 minutes on building a harness",
+"su": "How a harness lets agents plan, check and loop without hand-holding.",
+"ln": [],
+"im": "amplify_video_thumb/2116877787478855680/img/QdybdFqbW2CQqlXN.jpg",
+"v": 1
+},
+{
+"id": "2116841043937394865",
+"u": "shipranotes/status/2116841043937394865",
+"h": "@shipranotes",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "career",
+"ty": "video",
+"ti": "How people who never feel lazy think",
+"su": "A 2-minute explainer on the mindset behind consistent action.",
+"ln": []
+},
+{
+"id": "2116949223727919238",
+"u": "vivistac/status/2116949223727919238",
+"h": "@vivistac",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "llm",
+"ty": "video",
+"ti": "Stanford: 80% of how LLMs work in one class",
+"su": "A single 2-hour class covering the core of how LLMs are trained and run.",
+"ln": []
+},
+{
+"id": "2116825871768047997",
+"u": "0xKiyoro/status/2116825871768047997",
+"h": "@0xKiyoro",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "claude",
+"ty": "thread",
+"ti": "Claude Code harness: a builder and a checker",
+"su": "A setup where one agent builds, another checks, and nothing stops until every test passes.",
+"ln": []
+},
+{
+"id": "2116862056708317397",
+"u": "Divyyanshishrma/status/2116862056708317397",
+"h": "@Divyyanshishrma",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "agents",
+"ty": "site",
+"ti": "Learn Harness Engineering (free site)",
+"su": "A free interactive course on harness engineering, a concept most AI engineers haven't met yet.",
+"ln": [
+[
+"walkinglabs.github.io",
+"https://t.co/1d2NlyuSpf"
+]
+]
+},
+{
+"id": "2116978958121964030",
+"u": "Bober_smart/status/2116978958121964030",
+"h": "@Bober_smart",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "agents",
+"ty": "repo",
+"ti": "10 ready-made 'second brain' repos for Claude",
+"su": "Open-source systems that ingest your sources, organise them into a wiki and verify claims. Relevant to your RAG work.",
+"ln": [],
+"im": "amplify_video_thumb/2116978930120904706/img/9D0llnWBwUpURanZ.jpg",
+"v": 1
+},
+{
+"id": "2117006273598378485",
+"u": "Zephyr_hg/status/2117006273598378485",
+"h": "@Zephyr_hg",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "claude",
+"ty": "thread",
+"ti": "An AI team for a one-person business",
+"su": "A prompt that sets up agents, workflows and an approval step for a solo operator.",
+"ln": [],
+"im": "media/HWEd_JgaYAEsFGk?format=jpg&name=small"
+},
+{
+"id": "2116909792480411677",
+"u": "slash1sol/status/2116909792480411677",
+"h": "@slash1sol",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "agents",
+"ty": "thread",
+"ti": "Run any task as a graph with checks",
+"su": "A Karpathy-style loop prompt: one check per node, a baseline before any change, and only the wins survive.",
+"ln": []
+},
+{
+"id": "2116898054729077209",
+"u": "bottegamd/status/2116898054729077209",
+"h": "@bottegamd",
+"d": "2026-11-01",
+"s": "bl",
+"sh": "llm",
+"ty": "video",
+"ti": "Geoffrey Hinton: how these models really work (47 min)",
+"su": "The Godfather of AI on how LLMs work and why he worries about them.",
+"ln": [],
+"im": "amplify_video_thumb/2116864116228816896/img/k2Qf_yTKlLMuyZDB.jpg",
+"v": 1
+},
+{
+"id": "2114338456750997922",
+"u": "m4lkxx/status/2114338456750997922",
+"h": "@m4lkxx",
+"d": "2026-10-25",
+"s": "bl",
+"sh": "agents",
+"ty": "thread",
+"ti": "7 levels: from babysitting agents to running a fleet",
+"su": "'You are the agent's loop': how to move checking work off yourself and into the system.",
+"ln": []
+},
+{
+"id": "2116594226968383990",
+"u": "999toba/status/2116594226968383990",
+"h": "@999toba",
+"d": "2026-10-31",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "Full 5-hour Claude course",
+"su": "Build tools, automate tasks, design bots and connect Claude to your apps.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2116522516915028254",
+"u": "LunarResearcher/status/2116522516915028254",
+"h": "@LunarResearcher",
+"d": "2026-10-31",
+"s": "bl",
+"sh": "agents",
+"ty": "video",
+"ti": "How Anthropic builds agents that prompt themselves (30 min)",
+"su": "An Anthropic engineer on systems that remember, fix their own mistakes and prompt themselves.",
+"ln": [
+[
+"Watch",
+"https://t.co/mQGcgFXG0J"
+]
+],
+"v": 1
+},
+{
+"id": "2116593215549657221",
+"u": "garlotic/status/2116593215549657221",
+"h": "@garlotic",
+"d": "2026-10-31",
+"s": "bl",
+"sh": "claude",
+"ty": "thread",
+"ti": "Prompt audit trick for Claude Code",
+"su": "Audits your skills, CLAUDE.md and prompts, removes what holds the model back and rewrites it.",
+"ln": [],
+"im": "media/HV-mT2GWEAEysB3?format=jpg&name=900x900"
+},
+{
+"id": "2116500449293693313",
+"u": "n0tisma/status/2116500449293693313",
+"h": "@n0tisma",
+"d": "2026-10-31",
+"s": "bl",
+"sh": "career",
+"ty": "thread",
+"ti": "Paper: 'The End of Software Engineering'",
+"su": "A thread on a paper arguing that writing code is fading as a core skill. Read it critically.",
+"ln": []
+},
+{
+"id": "2116412939154710913",
+"u": "nakshatraavijay/status/2116412939154710913",
+"h": "@nakshatraavijay",
+"d": "2026-10-31",
+"s": "bl",
+"sh": "agents",
+"ty": "thread",
+"ti": "Voice agents: fixing interruptions in production",
+"su": "A 30-day public build log on the hardest voice-agent problem: being interrupted at the worst moment.",
+"ln": []
+},
+{
+"id": "2116101792564142542",
+"u": "hrstwt/status/2116101792564142542",
+"h": "@hrstwt",
+"d": "2026-10-30",
+"s": "b",
+"sh": "ui",
+"ty": "site",
+"ti": "5 UI component libraries",
+"su": "RareUI, Kobra Systems, EasyUI, PinUI and Aceternity UI, for good-looking frontends fast.",
+"ln": [
+[
+"rareui.com",
+"https://t.co/V4wcCyVeOi"
+],
+[
+"kobra.systems",
+"https://t.co/oATpQ8Jm2v"
+],
+[
+"easyui.site",
+"https://t.co/bhhOQqSsiA"
+],
+[
+"pinui.xyz",
+"https://t.co/6XOe2vZocQ"
+],
+[
+"ui.aceternity.com",
+"https://ui.aceternity.com"
+]
+]
+},
+{
+"id": "2116174194602057984",
+"u": "karthikponna19/status/2116174194602057984",
+"h": "@karthikponna19",
+"d": "2026-10-30",
+"s": "bl",
+"sh": "jobs",
+"ty": "post",
+"ti": "'Must read if you want a job before 2027'",
+"su": "A strongly recommended read on landing a job. Open the post for the attached piece.",
+"ln": []
+},
+{
+"id": "2115529519830585366",
+"u": "rakib_hossen_ai/status/2115529519830585366",
+"h": "@rakib_hossen_ai",
+"d": "2026-10-28",
+"s": "bl",
+"sh": "product",
+"ty": "repo",
+"ti": "10 open-source repos for an AI content factory",
+"su": "Scripts, images, voiceovers and translation without a team, starting with OpenCreator. Directly useful for producing video at volume.",
+"ln": [],
+"im": "media/HVve3ihbsAAcYhV?format=jpg&name=small"
+},
+{
+"id": "2115457921018634600",
+"u": "Jayyanginspires/status/2115457921018634600",
+"h": "@Jayyanginspires",
+"d": "2026-10-28",
+"s": "bl",
+"sh": "outreach",
+"ty": "video",
+"ti": "How to write paid ads (full course)",
+"su": "A complete course on ad copy that converts.",
+"ln": []
+},
+{
+"id": "2115490116965691892",
+"u": "noisyb0y1/status/2115490116965691892",
+"h": "@noisyb0y1",
+"d": "2026-10-28",
+"s": "bl",
+"sh": "product",
+"ty": "video",
+"ti": "A game built with 4 agents (Stanford talk)",
+"su": "How a solo builder used Claude Code agents to replace a dev team, with timestamps.",
+"ln": []
+},
+{
+"id": "2115744044592816137",
+"u": "RahulTechX/status/2115744044592816137",
+"h": "@RahulTechX",
+"d": "2026-10-29",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "2-hour Claude full course: build & automate",
+"su": "An evening course on building and automating with Claude.",
+"ln": [],
+"im": "amplify_video_thumb/2115743220999303168/img/7dC3iFj9r928iC4l.jpg",
+"v": 1
+},
+{
+"id": "2115462361129898376",
+"u": "AvinashSingh_20/status/2115462361129898376",
+"h": "@AvinashSingh_20",
+"d": "2026-10-28",
+"s": "b",
+"sh": "jobs",
+"ty": "sheet",
+"ti": "1750+ talent acquisition contacts",
+"su": "A spreadsheet of recruiters and TA people for direct outreach.",
+"ln": [
+[
+"Open sheet",
+"https://t.co/8wlS86xWVl"
+]
+]
+},
+{
+"id": "2115431115297370490",
+"u": "simm_designs/status/2115431115297370490",
+"h": "@simm_designs",
+"d": "2026-10-28",
+"s": "b",
+"sh": "dsa",
+"ty": "site",
+"ti": "CodeLoop: spaced revision for DSA",
+"su": "Solve a problem once and it schedules your revisions automatically.",
+"ln": [
+[
+"code-loop-two.vercel.app",
+"https://t.co/z9VgTrKhAY"
+]
+]
+},
+{
+"id": "2115351442336952421",
+"u": "Kcodess/status/2115351442336952421",
+"h": "@Kcodess",
+"d": "2026-10-28",
+"s": "b",
+"sh": "career",
+"ty": "thread",
+"ti": "Strip the buzzwords: what's left on your resume?",
+"su": "Take away RAG, LangChain, agents and MCP. Do the fundamentals still stand on their own?",
+"ln": []
+},
+{
+"id": "2115352066822734060",
+"u": "Kcodess/status/2115352066822734060",
+"h": "@Kcodess",
+"d": "2026-10-28",
+"s": "b",
+"sh": "career",
+"ty": "thread",
+"ti": "Go deep now, while you have time",
+"su": "Once you're senior it's fast decisions and firefighting, so learn the internals early.",
+"ln": []
+},
+{
+"id": "2115075154393042980",
+"u": "textbackdoor/status/2115075154393042980",
+"h": "@textbackdoor",
+"d": "2026-10-27",
+"s": "b",
+"sh": "outreach",
+"ty": "thread",
+"ti": "The cold-email-a-startup playbook",
+"su": "Use their product, give honest feedback, record a 2-minute Loom on the worst friction, then ask for work.",
+"ln": [
+[
+"textbackdoor.com",
+"https://t.co/gDq3uFcvdk"
+]
+]
+},
+{
+"id": "2115102978848022571",
+"u": "drummatick/status/2115102978848022571",
+"h": "@drummatick",
+"d": "2026-10-27",
+"s": "b",
+"sh": "claude",
+"ty": "image",
+"ti": "A snippet to drop into CLAUDE.md / AGENTS.md",
+"su": "Standing instructions that make coding agents behave better.",
+"ln": []
+},
+{
+"id": "2115060665614520393",
+"u": "Unnati_builds24/status/2115060665614520393",
+"h": "@Unnati_builds24",
+"d": "2026-10-27",
+"s": "b",
+"sh": "jobs",
+"ty": "thread",
+"ti": "40+ startups hiring this month",
+"su": "Clay, PostHog, Cardboard (Bengaluru/SF) and more, with remote and on-site locations.",
+"ln": []
+},
+{
+"id": "2115020186579603664",
+"u": "Rustix69/status/2115020186579603664",
+"h": "@Rustix69",
+"d": "2026-10-27",
+"s": "b",
+"sh": "outreach",
+"ty": "repo",
+"ti": "EmailEngine: 100+ recruiter cold emails in an hour",
+"su": "An open-source tool for skipping job boards and emailing recruiters directly.",
+"ln": [
+[
+"GitHub repo",
+"https://t.co/BQVovbKBF2"
+]
+],
+"im": "media/HVlm-O3asAAHHy3?format=jpg&name=360x360"
+},
+{
+"id": "2113988993272644036",
+"u": "Unnati_builds24/status/2113988993272644036",
+"h": "@Unnati_builds24",
+"d": "2026-10-24",
+"s": "bl",
+"sh": "jobs",
+"ty": "thread",
+"ti": "Japan hiring: company career emails",
+"su": "Direct career emails for Sakana AI, Fujitsu Research, game studios and more.",
+"ln": []
+},
+{
+"id": "2113907676845326818",
+"u": "GlobalMoveHub/status/2113907676845326818",
+"h": "@GlobalMoveHub",
+"d": "2026-10-24",
+"s": "b",
+"sh": "jobs",
+"ty": "site",
+"ti": "Work in Denmark: official jobs portal",
+"su": "Denmark's official site for foreigners to search jobs and relocate.",
+"ln": [
+[
+"workindenmark.dk",
+"https://www.workindenmark.dk"
+]
+]
+},
+{
+"id": "2113640008985022633",
+"u": "21prnv/status/2113640008985022633",
+"h": "@21prnv",
+"d": "2026-10-23",
+"s": "bl",
+"sh": "ui",
+"ty": "site",
+"ti": "LinkToKeep",
+"su": "A handy tool site, recommended with 'bookmark it first'.",
+"ln": [
+[
+"linktokeep.com",
+"https://t.co/aaFaAEeufb"
+]
+]
+},
+{
+"id": "2113687414170661150",
+"u": "Adarsh_VMore/status/2113687414170661150",
+"h": "@Adarsh_VMore",
+"d": "2026-10-23",
+"s": "b",
+"sh": "agents",
+"ty": "video",
+"ti": "Voice AI clinic receptionist: the full stack",
+"su": "LiveKit + WebRTC, AssemblyAI, DeepSeek and Rime, with state-machine orchestration for appointments and insurance.",
+"ln": [],
+"im": "amplify_video_thumb/2113668830035861505/img/YWvVTmLBNiim8I3z.jpg",
+"v": 1
+},
+{
+"id": "2113681823045959879",
+"u": "vineeth_agi/status/2113681823045959879",
+"h": "@vineeth_agi",
+"d": "2026-10-23",
+"s": "b",
+"sh": "jobs",
+"ty": "site",
+"ti": "Aarivi: job search tool",
+"su": "Recommended by someone who landed a job with it.",
+"ln": [
+[
+"aarivi.com",
+"https://t.co/XBkm97IzmB"
+]
+],
+"v": 1
+},
+{
+"id": "2106271448293896307",
+"u": "adxtyahq/status/2106271448293896307",
+"h": "@adxtyahq",
+"d": "2026-10-03",
+"s": "bl",
+"sh": "outreach",
+"ty": "repo",
+"ti": "yc-outreach: email YC founders",
+"su": "Pick a YC batch to get founders, likely emails and personalised drafts.",
+"ln": [
+[
+"GitHub repo",
+"https://t.co/MEfmRQnp1T"
+]
+]
+},
+{
+"id": "2113677490397024626",
+"u": "AvinashSingh_20/status/2113677490397024626",
+"h": "@AvinashSingh_20",
+"d": "2026-10-23",
+"s": "bl",
+"sh": "jobs",
+"ty": "sheet",
+"ti": "Job seekers kits: Bangalore, Gurgaon, remote",
+"su": "City-wise company lists plus 100% remote hiring companies.",
+"ln": [
+[
+"Bangalore kit",
+"https://t.co/VjjbdSPU1s"
+],
+[
+"Gurgaon kit",
+"https://t.co/ycIyPGcear"
+],
+[
+"Remote kit",
+"https://t.co/coJYhabA97"
+],
+[
+"Remote companies",
+"https://t.co/p4AhG3Wve9"
+]
+]
+},
+{
+"id": "2113674541079970181",
+"u": "_vamsipawanism_/status/2113674541079970181",
+"h": "@_vamsipawanism_",
+"d": "2026-10-23",
+"s": "bl",
+"sh": "jobs",
+"ty": "post",
+"ti": "Yottaflex: AI Forward Deployed Engineer roles",
+"su": "Associate AI FDE and AI Data FDE openings, with an exam email after you apply.",
+"ln": [
+[
+"AI FDE",
+"https://t.co/NOTDEalh4s"
+],
+[
+"AI Data FDE",
+"https://t.co/jOrzjvwi9K"
+]
+]
+},
+{
+"id": "2113508215266672749",
+"u": "nereasolenne/status/2113508215266672749",
+"h": "@nereasolenne",
+"d": "2026-10-23",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "Claude Code in 1 hour, no coding needed",
+"su": "From zero to real projects, with tips most people miss.",
+"ln": [],
+"im": "amplify_video_thumb/2112996002667929600/img/-TIhxTipXuUQscaF.jpg",
+"v": 1
+},
+{
+"id": "2113233382478164041",
+"u": "DRAX1AN/status/2113233382478164041",
+"h": "@DRAX1AN",
+"d": "2026-10-22",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "4-hour hands-on: build apps with Claude",
+"su": "A long practical course on building an app with Claude step by step.",
+"ln": [],
+"im": "amplify_video_thumb/2078874295535640576/img/16XQgfqIF-MacYSE.jpg",
+"v": 1
+},
+{
+"id": "2113471101133279518",
+"u": "triptitips/status/2113471101133279518",
+"h": "@triptitips",
+"d": "2026-10-23",
+"s": "b",
+"sh": "ui",
+"ty": "site",
+"ti": "50 legendary websites (hidden toolbox)",
+"su": "Free books, open-access papers (CORE, Semantic Scholar) and more useful sites.",
+"ln": [
+[
+"manybooks.net",
+"https://t.co/ajCxTtKIyw"
+],
+[
+"standardebooks.org",
+"https://t.co/GSoKool8eU"
+],
+[
+"core.ac.uk",
+"https://t.co/EKJpnj7BGq"
+],
+[
+"semanticscholar.org",
+"https://t.co/N8lUGTXUMQ"
+]
+],
+"im": "media/HVSOnUwbAAAZ6xT?format=jpg&name=small"
+},
+{
+"id": "2113312091314794498",
+"u": "anuragdotdev/status/2113312091314794498",
+"h": "@anuragdotdev",
+"d": "2026-10-22",
+"s": "bl",
+"sh": "ui",
+"ty": "site",
+"ti": "Piixpal: free animated UI components",
+"su": "Animated components, hero templates and pixel art for landing pages.",
+"ln": [
+[
+"Piixpal",
+"https://t.co/zhdqcFcSo2"
+]
+]
+},
+{
+"id": "2113205575417028628",
+"u": "textbackdoor/status/2113205575417028628",
+"h": "@textbackdoor",
+"d": "2026-10-22",
+"s": "bl",
+"sh": "jobs",
+"ty": "sheet",
+"ti": "Startups actively hiring: one sheet",
+"su": "Compiled from an October hiring thread, with company, careers page and location.",
+"ln": [
+[
+"Open sheet",
+"https://t.co/FbGVuJb9AM"
+]
+]
+},
+{
+"id": "2112955348332245345",
+"u": "lyuure/status/2112955348332245345",
+"h": "@lyuure",
+"d": "2026-10-21",
+"s": "b",
+"sh": "jobs",
+"ty": "video",
+"ti": "Using Claude to find and apply for jobs",
+"su": "Claude submitting applications and tailoring a CV, explained in detail.",
+"ln": [],
+"im": "amplify_video_thumb/2112955064721477632/img/mKiE8Fbjt_zVqgr3.jpg",
+"v": 1
+},
+{
+"id": "2112838805606772814",
+"u": "nereasolenne/status/2112838805606772814",
+"h": "@nereasolenne",
+"d": "2026-10-21",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "1-hour course: build and automate almost anything",
+"su": "A compact AI automation course.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2112857994388176986",
+"u": "AskYoshik/status/2112857994388176986",
+"h": "@AskYoshik",
+"d": "2026-10-21",
+"s": "b",
+"sh": "devops",
+"ty": "repo",
+"ti": "Awesome uptime / SRE engineer resources",
+"su": "A curated GitHub list for reliability engineering: monitoring, incidents and on-call.",
+"ln": [
+[
+"GitHub repo",
+"https://t.co/tFA5egBPA7"
+]
+]
+},
+{
+"id": "2112951894293479909",
+"u": "AskYoshik/status/2112951894293479909",
+"h": "@AskYoshik",
+"d": "2026-10-21",
+"s": "b",
+"sh": "security",
+"ty": "thread",
+"ti": "Weak certificate keys & how web trust works",
+"su": "Why 8 certificate keys could be guessed in seconds, how the TLS chain of trust works, and why a browser update alone may not protect your apps.",
+"ln": []
+},
+{
+"id": "2112433818632356324",
+"u": "_HimanshuBuilds/status/2112433818632356324",
+"h": "@_HimanshuBuilds",
+"d": "2026-10-20",
+"s": "b",
+"sh": "agents",
+"ty": "video",
+"ti": "'We don't write prompts, we build loops' (42 min)",
+"su": "How the Claude team builds loops that prompt themselves.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2112608909857005891",
+"u": "divyansh_1729/status/2112608909857005891",
+"h": "@divyansh_1729",
+"d": "2026-10-20",
+"s": "b",
+"sh": "dsa",
+"ty": "site",
+"ti": "CP-Algorithms",
+"su": "A classic reference for algorithms and data structures used in competitive programming.",
+"ln": [
+[
+"cp-algorithms.com",
+"https://t.co/iSnzsfXOmG"
+]
+]
+},
+{
+"id": "2112572471702704342",
+"u": "BhosalePratim/status/2112572471702704342",
+"h": "@BhosalePratim",
+"d": "2026-10-20",
+"s": "bl",
+"sh": "hardware",
+"ty": "video",
+"ti": "Offline iOS gym app that counts reps",
+"su": "Built with Phonon, open-source on-device TTS models under 50M parameters, with no API costs.",
+"ln": [],
+"im": "amplify_video_thumb/2112568570697678848/img/sK7QXjOW8WlxT0Gq.jpg",
+"v": 1
+},
+{
+"id": "2112578300036202563",
+"u": "janaksunil/status/2112578300036202563",
+"h": "@janaksunil",
+"d": "2026-10-20",
+"s": "b",
+"sh": "jobs",
+"ty": "post",
+"ti": "Hiring: engineers who own products end to end",
+"su": "The only requirement is high agency. Remote and interns OK, DM to apply.",
+"ln": []
+},
+{
+"id": "2112381862153007236",
+"u": "nithinmatha/status/2112381862153007236",
+"h": "@nithinmatha",
+"d": "2026-10-20",
+"s": "b",
+"sh": "jobs",
+"ty": "post",
+"ti": "Funded Hyderabad startup hiring",
+"su": "A small, fast team. Reply with what you've built, or DM.",
+"ln": []
+},
+{
+"id": "2112559100189966389",
+"u": "Chioma__Amadi/status/2112559100189966389",
+"h": "@Chioma__Amadi",
+"d": "2026-10-20",
+"s": "b",
+"sh": "jobs",
+"ty": "sheet",
+"ti": "360 remote-hiring companies & platforms",
+"su": "Grouped by entry, mid and senior level and colour-coded by niche, with direct links.",
+"ln": []
+},
+{
+"id": "2112253573799219361",
+"u": "kanavtwt/status/2112253573799219361",
+"h": "@kanavtwt",
+"d": "2026-10-19",
+"s": "bl",
+"sh": "hardware",
+"ty": "video",
+"ti": "Fo: an AI that feels and controls the physical world",
+"su": "A founder story from IIIT Hyderabad to Carnegie Mellon, ending in an AI device that controls a lamp.",
+"ln": [],
+"im": "amplify_video_thumb/2112253530300198912/img/tmDgRmSB6tJwOIVl.jpg",
+"v": 1
+},
+{
+"id": "2112179474649448960",
+"u": "Ozacle23/status/2112179474649448960",
+"h": "@Ozacle23",
+"d": "2026-10-19",
+"s": "b",
+"sh": "outreach",
+"ty": "video",
+"ti": "10 minutes to get hired at your favourite startup",
+"su": "A short video plus an attached guide on not missing the opportunity.",
+"ln": [],
+"im": "amplify_video_thumb/2112176965776191488/img/fEBDMtDuooLmt16i.jpg",
+"v": 1
+},
+{
+"id": "2112480045277368411",
+"u": "thatGTMdude/status/2112480045277368411",
+"h": "@thatGTMdude",
+"d": "2026-10-20",
+"s": "b",
+"sh": "outreach",
+"ty": "thread",
+"ti": "Founder-research playbook for outreach",
+"su": "Find seed-stage startups, read their founders' last 100 posts, and mine every question customers asked them.",
+"ln": []
+},
+{
+"id": "2112138787748987188",
+"u": "sarvagya_kul/status/2112138787748987188",
+"h": "@sarvagya_kul",
+"d": "2026-10-19",
+"s": "b",
+"sh": "outreach",
+"ty": "video",
+"ti": "Pitching yourself in public",
+"su": "A designer's public self-pitch video, cited as the difference between a 12 LPA and a 60 LPA+ offer.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2110621902469480573",
+"u": "sarvagya_kul/status/2110621902469480573",
+"h": "@sarvagya_kul",
+"d": "2026-10-15",
+"s": "b",
+"sh": "outreach",
+"ty": "image",
+"ti": "A cold email that works 8 out of 10 times",
+"su": "A screenshot of the email structure.",
+"ln": [],
+"im": "media/HUpvWrgbcAAjkbv?format=png&name=900x900"
+},
+{
+"id": "2110697582813168121",
+"u": "sarvagya_kul/status/2110697582813168121",
+"h": "@sarvagya_kul",
+"d": "2026-10-15",
+"s": "b",
+"sh": "outreach",
+"ty": "post",
+"ti": "Aiming for 10K views, got 100K+ on day one",
+"su": "A personal-brand case study on posting content.",
+"ln": []
+},
+{
+"id": "2094406565163855968",
+"u": "MaxTorchbearer/status/2094406565163855968",
+"h": "@MaxTorchbearer",
+"d": "2026-08-31",
+"s": "b",
+"sh": "career",
+"ty": "video",
+"ti": "How to consistently improve",
+"su": "A short clip on a repeatable method for getting better.",
+"ln": [],
+"im": "amplify_video_thumb/2094406544079175680/img/HHe7IPIfnXqu4-AU.jpg",
+"v": 1
+},
+{
+"id": "2119918392035397713",
+"u": "MaxTorchbearer/status/2119918392035397713",
+"h": "@MaxTorchbearer",
+"d": "2026-11-09",
+"s": "bl",
+"sh": "career",
+"ty": "video",
+"ti": "The goldmine you wish you'd found earlier",
+"su": "A motivation clip about finding the right resource and getting there twice as fast.",
+"ln": [],
+"im": "amplify_video_thumb/2119073441840037888/img/4D_uZCsRjDLmQSIm.jpg",
+"v": 1
+},
+{
+"id": "2119269630363476114",
+"u": "anas2ab/status/2119269630363476114",
+"h": "@anas2ab",
+"d": "2026-11-08",
+"s": "l",
+"sh": "dsa",
+"ty": "site",
+"ti": "Grindstone: free DSA + system design",
+"su": "A free practice resource covering DSA and system design.",
+"ln": [
+[
+"grindstone6.netlify.app",
+"https://t.co/Mo6RdnaUDu"
+]
+]
+},
+{
+"id": "2116992799400984911",
+"u": "khushiirl/status/2116992799400984911",
+"h": "@khushiirl",
+"d": "2026-11-01",
+"s": "l",
+"sh": "product",
+"ty": "thread",
+"ti": "Karpathy's weekend hack: HackerTube",
+"su": "Claude filtered 43M Hacker News comments down to 6,454 videos worth watching, a neat example of LLM-powered curation.",
+"ln": []
+},
+{
+"id": "2115702529640260050",
+"u": "Dipanshu_AI/status/2115702529640260050",
+"h": "@Dipanshu_AI",
+"d": "2026-10-29",
+"s": "l",
+"sh": "claude",
+"ty": "video",
+"ti": "Anthropic's free 4-hour Claude course",
+"su": "Prompting right (0:15), what makes Claude act dumber in code (33:21), how Anthropic uses it daily (1:33:39).",
+"ln": [],
+"v": 1
+},
+{
+"id": "2113759043533910180",
+"u": "navyabijoy/status/2113759043533910180",
+"h": "@navyabijoy",
+"d": "2026-10-23",
+"s": "l",
+"sh": "sysdesign",
+"ty": "thread",
+"ti": "A study log: Go packages, local-delivery HLD, API design",
+"su": "A daily-plan template: Go modules, a Blinkit/Zepto-style delivery system design and API design.",
+"ln": []
+},
+{
+"id": "2113737805545582863",
+"u": "mitdave/status/2113737805545582863",
+"h": "@mitdave",
+"d": "2026-10-23",
+"s": "l",
+"sh": "jobs",
+"ty": "site",
+"ti": "Pramaana Labs hiring (anti-hallucination AI)",
+"su": "Product, design and engineering roles at a startup building AI that gives verified answers.",
+"ln": [
+[
+"Open roles",
+"https://t.co/qsfsKmkApr"
+]
+]
+},
+{
+"id": "2113656512010969272",
+"u": "CodeWithSravya/status/2113656512010969272",
+"h": "@CodeWithSravya",
+"d": "2026-10-23",
+"s": "l",
+"sh": "interview",
+"ty": "post",
+"ti": "Buzzwords vs basics: overloading vs overriding",
+"su": "A reminder that interviewers still probe OOP fundamentals behind the RAG and Kafka talk.",
+"ln": []
+},
+{
+"id": "2113373577915613452",
+"u": "jakecastilloooo/status/2113373577915613452",
+"h": "@jakecastilloooo",
+"d": "2026-10-22",
+"s": "l",
+"sh": "product",
+"ty": "video",
+"ti": "'I asked an AI agent to make me money'",
+"su": "A YouTube breakdown of an AI-agent side business you can copy step by step.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2112940762291941794",
+"u": "mediastorm_en/status/2112940762291941794",
+"h": "@mediastorm_en",
+"d": "2026-10-21",
+"s": "l",
+"sh": "hardware",
+"ty": "video",
+"ti": "iPhone Duo review: 10,000 folds later",
+"su": "A durability deep dive on the foldable iPhone.",
+"ln": [],
+"v": 1
+},
+{
+"id": "2113021121469550976",
+"u": "brenzhills/status/2113021121469550976",
+"h": "@brenzhills",
+"d": "2026-10-21",
+"s": "l",
+"sh": "product",
+"ty": "thread",
+"ti": "Testing vibe-coded apps against real users",
+"su": "A tool that checks whether AI-written code holds up with real users and months of data.",
+"ln": []
+},
+{
+"id": "2112898237699068338",
+"u": "DAIEvolutionHub/status/2112898237699068338",
+"h": "@DAIEvolutionHub",
+"d": "2026-10-21",
+"s": "l",
+"sh": "agents",
+"ty": "video",
+"ti": "Google's 1-hour agentic engineering course",
+"su": "First agent (0:00), memory types (8:24), long-running loops (28:34), building MCP vs API (40:04).",
+"ln": [],
+"v": 1
+}
+]
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stash · your learning vault</title>
+<meta name="theme-color" content="#0b0b12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stash">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<!-- Lock screen (shown until signed in) -->
+<section id="lock" class="lock" hidden>
+  <div class="lock-card">
+    <div class="logo-big">◐</div>
+    <h1>Stash</h1>
+    <p>Your private learning vault.</p>
+    <button id="signin" class="btn primary">Sign in with Google</button>
+    <p id="lock-msg" class="muted small"></p>
+  </div>
+</section>
+
+<main id="app" hidden>
+  <header class="top">
+    <div class="brand"><span class="logo">◐</span> Stash</div>
+    <div class="top-actions">
+      <button id="surprise" class="btn ghost" title="Surprise me (R)">🎲 <span class="hide-sm">Surprise me</span></button>
+      <button id="signout" class="btn ghost small" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow" id="greet">Good evening</p>
+    <h1 class="display">What are we <em>learning</em> today?</h1>
+    <div class="search">
+      <span>⌕</span>
+      <input id="q" type="search" placeholder="Search Kubernetes, harness, cold email, system design…" autocomplete="off">
+      <kbd>/</kbd>
+    </div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="block" id="fresh-block">
+    <div class="block-head"><h2>Fresh this week</h2><span class="muted" id="fresh-count"></span></div>
+    <div class="rail" id="fresh"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>Shelves</h2><button class="link" id="all-shelves">Show everything</button></div>
+    <div class="bento" id="shelves"></div>
+  </section>
+
+  <section class="block" id="list-block">
+    <div class="toolbar">
+      <div class="chips" id="types"></div>
+      <div class="tools">
+        <select id="source" aria-label="Source">
+          <option value="all">Bookmarks + Likes</option>
+          <option value="b">Bookmarks</option>
+          <option value="l">Likes</option>
+          <option value="star">★ Starred</option>
+          <option value="todo">Not done yet</option>
+          <option value="done">✓ Done</option>
+        </select>
+        <select id="sort" aria-label="Sort">
+          <option value="new">Newest</option>
+          <option value="old">Oldest</option>
+          <option value="shuffle">Shuffle</option>
+        </select>
+        <div class="seg" id="view">
+          <button data-v="grid" class="on" title="Cards">▦</button>
+          <button data-v="timeline" title="Timeline">☰</button>
+          <button data-v="focus" title="Focus mode">◉</button>
+        </div>
+      </div>
+    </div>
+    <div class="active-filter" id="active"></div>
+    <div id="list" class="grid"></div>
+  </section>
+
+  <footer class="foot muted small" id="foot"></footer>
+</main>
+
+<!-- Detail sheet -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-bg" data-close></div>
+  <article class="sheet-card" id="sheet-card"></article>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js" type="module"></script>
+</body>
+</html>
