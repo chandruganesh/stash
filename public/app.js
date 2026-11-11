@@ -12,7 +12,7 @@ let DATA = { shelves:{}, items:[], paths:{} }, BASE = [], INBOX = [];
 let STATE = blankState();
 const F = { q:'', shelf:null, type:null, source:'all', time:0, sort:'new', view:'grid', focusIdx:0, nav:'home', todaySalt:0 };
 let store;
-function blankState(){ return { star:{}, done:{}, later:{}, notes:{}, moves:{}, shelfNames:{}, prefs:{ theme:'dark', showLow:false } }; }
+function blankState(){ return { star:{}, done:{}, later:{}, notes:{}, progress:{}, moves:{}, shelfNames:{}, prefs:{ theme:'dark', showLow:false } }; }
 
 /* ================= persistence ================= */
 const localStore = {
@@ -115,7 +115,7 @@ function seeded(a, seed){ return a.map(x => [x, hash(seed + x.id)]).sort((p,q) =
 /* ================= renderers ================= */
 function card(it, opts = {}){
   const sh = shelfOf(it), n = groupSize(it);
-  const thumb = it.im ? `<div class="thumb-wrap"><img class="thumb" loading="lazy" src="${IMG + esc(it.im)}" alt="" onerror="this.parentNode.remove()">${it.v ? '<div class="play" aria-hidden="true">▶</div>' : ''}${it.m ? `<span class="dur">${mins(it)}</span>` : ''}</div>` : '';
+  const thumb = it.im ? `<div class="thumb-wrap"><img class="thumb" loading="lazy" src="${IMG + esc(it.im)}" alt="" onerror="this.parentNode.remove()">${it.v ? '<button class="play" data-play="' + it.id + '" aria-label="Play in Stash">▶</button>' : ''}${progBar(it)}${it.m ? `<span class="dur">${mins(it)}</span>` : ''}</div>` : '';
   return `<article class="card ${STATE.done[it.id] ? 'done' : ''}" style="--c:${sh.color}" data-id="${it.id}" tabindex="0" role="button" aria-label="${esc(it.ti)}">
     <div class="stripe"></div>${thumb}
     <div class="body">
@@ -131,6 +131,7 @@ function card(it, opts = {}){
         </span></div>
     </div></article>`;
 }
+const progBar = it => { const p = STATE.progress[it.id]; if (!p || STATE.done[it.id]) return ''; const pct = p.d ? Math.min(100, p.t / p.d * 100) : (it.m && p.t ? Math.min(100, p.t / (it.m * 60) * 100) : 4); return `<span class="pbar"><i style="width:${pct}%"></i></span>`; };
 const cards = (list, el, empty = 'Nothing here yet.') => { el.innerHTML = list.length ? list.map(x => card(x)).join('') : `<div class="empty">${empty}</div>`; };
 
 function renderBanner(){
@@ -157,8 +158,8 @@ function renderToday(){
   $('#today').innerHTML = t.length ? t.map(([l, it]) => card(it, { label:l })).join('') : `<div class="empty">You've finished everything. Impressive.</div>`;
 }
 function renderContinue(){
-  const c = DATA.items.filter(i => STATE.notes[i.id] && !STATE.done[i.id]);
-  $('#continue-block').hidden = !c.length; $('#continue').innerHTML = c.map(x => card(x)).join('');
+  const prog = inProgress(); const c = [...prog, ...DATA.items.filter(i => STATE.notes[i.id] && !STATE.done[i.id] && !prog.includes(i))];
+  $('#continue-block').hidden = !c.length; $('#continue').innerHTML = c.map(x => card(x, { label: STATE.progress[x.id]?.t ? '▶ ' + fmtClock(STATE.progress[x.id].t) : STATE.progress[x.id] ? '▶ Started' : '📝 Note' })).join('');
 }
 function renderFresh(){
   const f = dedupe(DATA.items.filter(i => visible(i) && isFresh(i)).sort((a,b) => (b.a||b.d).localeCompare(a.a||a.d) || b.d.localeCompare(a.d)));
@@ -247,6 +248,103 @@ function linksHtml(it){
     (it.ln || []).map(([l,u]) => `<a href="${esc(u)}" target="_blank" rel="noopener"><span>${esc(l)}</span><span>↗</span></a>`).join('') + orig;
 }
 
+
+/* ================= in-app viewer & player ================= */
+const ytId = u => (u || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/)?.[1];
+const ghRepo = u => (u || '').match(/^https?:\/\/github\.com\/([\w.-]+)\/([\w.-]+)\/?$/);
+const tweetId = it => it.u ? it.u.split('/status/')[1] : (it.url || '').match(/(?:x|twitter)\.com\/\w+\/status\/(\d+)/)?.[1];
+const NOFRAME = /(^|\.)(github\.com|x\.com|twitter\.com|linkedin\.com|instagram\.com|facebook\.com|medium\.com|substack\.com|google\.com|notion\.so|reddit\.com|ashbyhq\.com|lever\.co|greenhouse\.io)$/;
+const fmtClock = t => { t = Math.max(0, Math.floor(t)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(sec).padStart(2, '0'); };
+const parseClock = v => { const p = String(v).trim().split(':').map(Number); if (p.some(isNaN)) return null; return p.reduce((a, b) => a * 60 + b, 0); };
+let VW = null, ytPlayer = null, ytTimer = null;
+
+function viewSources(it){
+  const src = [];
+  const yt = [it.url, ...(it.ln || []).map(l => l[1])].map(ytId).find(Boolean);
+  if (yt) src.push({ kind:'yt', label:'▶ Video', id:yt });
+  const tid = tweetId(it); if (tid) src.push({ kind:'tweet', label: it.ty === 'video' && !yt ? '▶ Video post' : '💬 Post', id:tid });
+  for (const [label, u] of [...(it.url && !ytId(it.url) && !tweetId(it) ? [[it.h || 'Link', it.url]] : []), ...(it.ln || [])]) {
+    if (ytId(u)) continue;
+    const gh = ghRepo(u), host = (() => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } })();
+    if (gh) src.push({ kind:'readme', label:'📦 ' + label, owner:gh[1], repo:gh[2], url:u });
+    else if (/docs\.google\.com\/spreadsheets\/d\//.test(u)) src.push({ kind:'frame', label:'📊 ' + label, url:u.replace(/\/(edit|view)[^#]*.*$/, '/preview'), ext:u });
+    else if (NOFRAME.test(host)) src.push({ kind:'ext', label:'🌐 ' + label, url:u });
+    else src.push({ kind:'frame', label:'🌐 ' + label, url:u, ext:u });
+  }
+  return src;
+}
+function openViewer(id, tab = 0){
+  const it = DATA.items.find(i => i.id === id); if (!it) return;
+  const srcs = viewSources(it); if (!srcs.length) { window.open(postUrl(it), '_blank'); return; }
+  VW = { it, srcs, tab: Math.min(tab, srcs.length - 1) };
+  closeSheet();
+  if (!STATE.progress[id]) { STATE.progress[id] = { t:0, at:Date.now() }; } else STATE.progress[id].at = Date.now();
+  persist();
+  $('#vw-title').textContent = it.ti;
+  $('#vw-sub').textContent = `${shelfOf(it).emoji} ${shelfOf(it).name}${it.m ? ' · ' + mins(it) : ''}`;
+  $('#vw-tabs').innerHTML = srcs.length > 1 ? srcs.map((s, i) => `<button data-vtab="${i}" class="${i === VW.tab ? 'on' : ''}">${esc(s.label)}</button>`).join('') : '';
+  $('#viewer').hidden = false; document.body.style.overflow = 'hidden';
+  showSource();
+}
+function showSource(){
+  stopYt();
+  const { it, srcs, tab } = VW, s = srcs[tab], body = $('#vw-body');
+  [...$('#vw-tabs').children].forEach((b, i) => b.classList.toggle('on', i === tab));
+  $('#vw-ext').href = s.kind === 'yt' ? `https://www.youtube.com/watch?v=${s.id}&t=${Math.floor(STATE.progress[it.id]?.t || 0)}s` : s.kind === 'tweet' ? `https://x.com/i/status/${s.id}` : (s.ext || s.url);
+  if (s.kind === 'yt') { body.innerHTML = `<div class="vw-video"><div id="yt-slot"></div></div>`; loadYt(s.id, it); }
+  else if (s.kind === 'tweet') {
+    const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    body.innerHTML = `<div class="vw-tweet"><iframe src="https://platform.twitter.com/embed/Tweet.html?id=${s.id}&theme=${theme}&dnt=true&hideThread=false" title="Post" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager"></iframe></div>`;
+  }
+  else if (s.kind === 'frame') body.innerHTML = `<div class="vw-frame"><iframe src="${esc(s.url)}" title="${esc(s.label)}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"></iframe><p class="vw-note">Page blank? Some sites don't allow being shown inside other apps. <a href="${esc(s.ext || s.url)}" target="_blank" rel="noopener">Open it outside ↗</a></p></div>`;
+  else if (s.kind === 'readme') { body.innerHTML = `<div class="vw-read"><p class="muted">Loading README…</p></div>`; loadReadme(s); }
+  else body.innerHTML = `<div class="vw-read empty"><p><b>${esc(new URL(s.url).hostname)}</b> doesn't allow being opened inside other apps.</p><a class="btn primary" href="${esc(s.url)}" target="_blank" rel="noopener">Open ${esc(new URL(s.url).hostname)} ↗</a></div>`;
+  renderVwBar();
+}
+function renderVwBar(){
+  const { it, srcs, tab } = VW, s = srcs[tab], pr = STATE.progress[it.id] || {};
+  const isVid = s.kind === 'yt' || (s.kind === 'tweet' && it.ty === 'video');
+  $('#vw-bar').innerHTML = `
+    ${isVid && s.kind === 'tweet' ? `<label class="vw-pos">Stopped at <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>` : ''}
+    ${isVid && s.kind === 'yt' && pr.t ? `<span class="muted small">Resumes at ${fmtClock(pr.t)}${pr.d ? ' of ' + fmtClock(pr.d) : ''}</span>` : ''}
+    <span class="grow"></span>
+    <button class="btn small ${STATE.later[it.id] ? 'primary' : ''}" data-vact="later">⏱ ${STATE.later[it.id] ? 'Queued' : 'Later'}</button>
+    <button class="btn small" data-vact="note">📝 Note</button>
+    <button class="btn small ${STATE.done[it.id] ? 'primary' : ''}" data-vact="done">${STATE.done[it.id] ? '✓ Done' : '✓ Mark done'}</button>`;
+}
+function closeViewer(){
+  if (!VW) return; saveYtPos(); stopYt();
+  const pos = $('#vw-pos'); if (pos && pos.value.trim()) { const t = parseClock(pos.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, at:Date.now() }; persist(); } }
+  $('#viewer').hidden = true; $('#vw-body').innerHTML = ''; document.body.style.overflow = ''; VW = null; renderAll(false);
+}
+function loadYtApi(){ return window.YT && YT.Player ? Promise.resolve() : new Promise(res => { window.onYouTubeIframeAPIReady = res; const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); }); }
+async function loadYt(vid, it){
+  await loadYtApi(); if (!VW || VW.it !== it) return;
+  const start = Math.floor(STATE.progress[it.id]?.t || 0);
+  ytPlayer = new YT.Player('yt-slot', { videoId:vid, playerVars:{ start, rel:0, modestbranding:1, playsinline:1 },
+    events:{ onStateChange: e => { if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) saveYtPos(); if (e.data === YT.PlayerState.ENDED && !STATE.done[it.id]) { STATE.done[it.id] = Date.now(); persist(); renderVwBar(); toast('Finished, marked done ✓'); } } } });
+  ytTimer = setInterval(saveYtPos, 5000);
+}
+function saveYtPos(){
+  if (!ytPlayer || !VW || typeof ytPlayer.getCurrentTime !== 'function') return;
+  const t = ytPlayer.getCurrentTime(), d = ytPlayer.getDuration(); if (!t) return;
+  STATE.progress[VW.it.id] = { t, d, at:Date.now() };
+  if (d && t / d > .95 && !STATE.done[VW.it.id]) STATE.done[VW.it.id] = Date.now();
+  persist();
+}
+function stopYt(){ clearInterval(ytTimer); ytTimer = null; try { ytPlayer && ytPlayer.destroy(); } catch {} ytPlayer = null; }
+async function loadReadme(s){
+  try {
+    const r = await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/readme`, { headers:{ Accept:'application/vnd.github.html+json' } });
+    if (!r.ok) throw 0;
+    const html = await r.text(), base = `https://github.com/${s.owner}/${s.repo}/blob/HEAD/`;
+    const css = `body{font:15px/1.6 system-ui,sans-serif;color:${getComputedStyle(document.body).color};background:transparent;margin:0;padding:4px 2px}a{color:#7c5cff}img{max-width:100%}pre{overflow:auto;background:#8881;padding:12px;border-radius:8px}code{background:#8881;padding:1px 4px;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #8884;padding:4px 8px}`;
+    $('#vw-body').innerHTML = `<div class="vw-frame readme"><iframe sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="README"></iframe></div>`;
+    $('#vw-body iframe').srcdoc = `<base href="${base}" target="_blank"><style>${css}</style>${html}`;
+  } catch { $('#vw-body').innerHTML = `<div class="vw-read empty"><p>Couldn't load the README right now.</p><a class="btn primary" href="${esc(s.url)}" target="_blank" rel="noopener">Open on GitHub ↗</a></div>`; }
+}
+const inProgress = () => DATA.items.filter(i => STATE.progress[i.id] && !STATE.done[i.id] && (i.ty === 'video' || STATE.progress[i.id].t > 0)).sort((a,b) => STATE.progress[b.id].at - STATE.progress[a.id].at);
+
 /* ================= detail sheet ================= */
 function openSheet(id){
   const it = DATA.items.find(i => i.id === id); if (!it) return;
@@ -259,6 +357,7 @@ function openSheet(id){
     ${it.im ? `<img src="${IMG + esc(it.im)}" alt="" onerror="this.remove()">` : ''}
     <p>${esc(it.su || '')}</p>
     <p class="small muted">${esc(it.h || '')}${it.h ? ' · ' : ''}posted ${fmtDate(it.d)} · ${[it.s.includes('b') && 'bookmarked', it.s.includes('l') && 'liked', it.s.includes('s') && 'shared from phone'].filter(Boolean).join(' & ')}</p>
+    ${viewSources(it).length ? `<button class="btn primary big" data-view="${it.id}">${it.ty === 'video' ? (STATE.progress[it.id]?.t ? '▶ Continue at ' + fmtClock(STATE.progress[it.id].t) : '▶ Play in Stash') : READ.includes(it.ty) ? '📖 Read in Stash' : '👀 Open in Stash'}</button>` : ''}
     <div class="links">${linksHtml(it)}</div>
     ${sims.length ? `<details class="sims"><summary>You saved ${sims.length} similar post${sims.length > 1 ? 's' : ''}</summary>${sims.map(s => `<a href="${esc(postUrl(s))}" target="_blank" rel="noopener">${esc(s.ti)} · ${esc(s.h)} ↗</a>`).join('')}</details>` : ''}
     <label class="note"><span>📝 Your note</span><textarea id="note" data-id="${it.id}" rows="3" placeholder="e.g. watched till 40:00 · use for the AI+networking pitch">${esc(STATE.notes[it.id] || '')}</textarea></label>
@@ -400,7 +499,7 @@ function row(it){
     <span class="verb" title="${verb}">${ic}<small>${verb}</small></span>
     <div class="ans-main"><b>${esc(it.ti)}</b><p>${esc(it.su || 'Shared link (summary coming with the next sync).')}</p>
       <small>${TYPES[it.ty] || it.ty}${it.m ? ' · ' + mins(it) : ''} · ${sh.emoji} ${esc(sh.short || sh.name)}${STATE.done[it.id] ? ' · ✓ done' : ''}</small></div>
-    <a class="ic" href="${esc((it.ln && it.ln[0] && it.ln[0][1]) || postUrl(it))}" target="_blank" rel="noopener" data-act="open" aria-label="Open">↗</a></div>`;
+    <button class="ic go" data-view="${it.id}" aria-label="${verb} in Stash">${it.ty === 'video' ? '▶' : '→'}</button></div>`;
 }
 function renderChat(){
   const el = $('#chat'); $('#chat-clear').hidden = !CHAT.length;
@@ -501,12 +600,20 @@ function wire(){
   $('#rename').addEventListener('change', e => { const k = e.target.dataset.rename; if (!k) return; const v = e.target.value.trim();
     if (!v || v === DATA.shelves[k].name) delete STATE.shelfNames[k]; else STATE.shelfNames[k] = v; persist(); renderAll(false); toast('Shelf renamed ✓'); });
   document.addEventListener('submit', e => { if (e.target.id === 'chat-form') return; if (e.target.id === 'add-form') { e.preventDefault(); saveAdd(e.target); } });
+  document.addEventListener('change', e => { if (e.target.id === 'vw-pos' && VW) { const t = parseClock(e.target.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, at:Date.now() }; persist(); toast('Position saved: ' + fmtClock(t)); } } });
+  addEventListener('popstate', () => { if (VW) closeViewer(); });
   document.addEventListener('input', e => { if (e.target.id === 'note') { const id = e.target.dataset.id, v = e.target.value.trim(); if (v) STATE.notes[id] = v; else delete STATE.notes[id]; persist(); } });
   document.addEventListener('change', e => { if (e.target.id === 'move') { const id = e.target.dataset.id, k = e.target.value, it = DATA.items.find(i => i.id === id);
     if (k === it.sh) delete STATE.moves[id]; else STATE.moves[id] = k; persist(); renderAll(false); openSheet(id); toast('Moved ✓'); } });
   document.addEventListener('click', e => {
     const t = e.target;
     if (t.closest('[data-close]')) { closeSheet(); renderAll(false); return; }
+    const pl = t.closest('[data-play],[data-view]'); if (pl) { e.preventDefault(); e.stopPropagation(); openViewer(pl.dataset.play || pl.dataset.view); return; }
+    const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); VW.tab = +vt.dataset.vtab; showSource(); return; }
+    const va = t.closest('[data-vact]'); if (va && VW) { const a = va.dataset.vact, id = VW.it.id;
+      if (a === 'note') { closeViewer(); openSheet(id); setTimeout(() => $('#note')?.focus(), 50); return; }
+      if (STATE[a][id]) delete STATE[a][id]; else STATE[a][id] = Date.now(); persist(); renderVwBar(); if (a === 'done' && STATE.done[id]) toast('Marked done ✓'); return; }
+    if (t.closest('#vw-back')) { closeViewer(); return; }
     const nv = t.closest('[data-nav]'); if (nv) { go(nv.dataset.nav); return; }
     const ex = t.closest('[data-export]'); if (ex) { exportLib(ex.dataset.export); return; }
     const ak = t.closest('[data-ask]'); if (ak) { if (F.nav !== 'ask') go('ask'); sendChat(ak.dataset.ask); return; }
@@ -527,9 +634,10 @@ function wire(){
       renderList(); return; }
     const act = t.closest('[data-act]'); const c = t.closest('[data-id]');
     if (act && c) { if (act.dataset.act === 'open') return; e.preventDefault(); e.stopPropagation(); toggle(act.dataset.act, c.dataset.id); return; }
-    if (c && !t.closest('a') && !t.closest('textarea') && !t.closest('select') && c.id !== 'note' && c.id !== 'move') openSheet(c.dataset.id);
+    if (c && !t.closest('a') && !t.closest('textarea') && !t.closest('select') && c.id !== 'note' && c.id !== 'move') { if (t.closest('#continue') && STATE.progress[c.dataset.id]) openViewer(c.dataset.id); else openSheet(c.dataset.id); }
   });
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && VW) { closeViewer(); return; }
     if (e.key === 'Escape' && !$('#sheet').hidden) { closeSheet(); renderAll(false); return; }
     const tag = document.activeElement.tagName;
     if (e.key === 'Enter' && document.activeElement.matches('[data-id][role=button]')) { openSheet(document.activeElement.dataset.id); return; }
@@ -559,7 +667,7 @@ function surprise(){
   $('#app').hidden = false; $('#bottom').hidden = false;
   wire(); renderChat(); renderAll();
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), version: 2 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, version: 3 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
