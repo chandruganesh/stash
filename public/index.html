@@ -135,13 +135,15 @@
 
   <!-- ASK -->
   <section class="view" id="v-ask" hidden>
-    <div class="hero">
-      <p class="eyebrow">Ask your library</p>
-      <h1 class="display small-d">What did I save about…</h1>
-      <div class="search" role="search"><span aria-hidden="true">⌕</span><input id="q-ask" type="search" placeholder="harness engineering for agents" autocomplete="off" aria-label="Ask your library"></div>
-      <div class="chips suggest" id="suggest"></div>
+    <div class="chat-head">
+      <div><p class="eyebrow">Ask your library</p><h1 class="display small-d">Chat with your <em>Stash</em></h1></div>
+      <button class="btn ghost small" id="chat-clear" hidden>Clear chat</button>
     </div>
-    <div id="answer" class="answer" aria-live="polite"></div>
+    <div id="chat" class="chat" aria-live="polite"></div>
+    <form id="chat-form" class="chat-input" autocomplete="off">
+      <input id="q-ask" type="text" placeholder="e.g. list everything on LLM or kubernetes" aria-label="Ask your library">
+      <button class="btn primary" type="submit" aria-label="Send">➤</button>
+    </form>
   </section>
 
   <!-- ME -->

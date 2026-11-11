@@ -301,35 +301,121 @@ async function saveAdd(form){
   history.replaceState(null, '', location.pathname);
 }
 
-/* ================= ask your library ================= */
-const SYN = { k8s:'kubernetes', kube:'kubernetes', docker:'docker container', sd:'system design', hld:'system design', llm:'llm language model', llms:'llm', agent:'agent agents harness', agents:'agent harness', rag:'rag retrieval second brain', job:'job hiring jobs careers', jobs:'job hiring', cold:'cold email outreach', email:'email outreach', resume:'resume portfolio projects', interview:'interview', dsa:'dsa algorithms', claude:'claude', ui:'ui components', video:'video lecture course', course:'course lecture', aws:'aws cloud', visa:'visa sponsor' };
-function ask(q){
-  const raw = q.toLowerCase().split(/[^\w+]+/).filter(w => w.length > 1 && !['what','did','i','save','saved','about','the','for','and','how','to','on','of','my','me','any','is','a'].includes(w));
-  const terms = [...new Set(raw.flatMap(w => [w, ...(SYN[w] || '').split(' ').filter(Boolean)]))];
-  if (!terms.length) return null;
-  const docs = dedupe(DATA.items.filter(visible)), N = docs.length, avg = docs.reduce((s, d) => s + hay(d).length, 0) / N;
-  const df = t => docs.filter(d => hay(d).includes(t)).length;
-  const idf = Object.fromEntries(terms.map(t => [t, Math.log(1 + (N - df(t) + .5) / (df(t) + .5))]));
-  const scored = docs.map(d => { const h = hay(d), ti = d.ti.toLowerCase(); let s = 0;
-    for (const t of terms) { const tf = h.split(t).length - 1; if (tf) s += idf[t] * (tf * 2.2) / (tf + 1.2 * (.25 + .75 * h.length / avg)) + (ti.includes(t) ? idf[t] : 0); }
-    return [d, s]; }).filter(x => x[1] > 0).sort((a,b) => b[1] - a[1]);
-  return { terms, hits: scored.slice(0, 12).map(x => x[0]) };
+/* ================= ask your library (chat) ================= */
+const TOPICS = {
+  llm:        { label:'LLMs',              shelves:['llm'],       kw:['llm','language model','transformer','gpt','chatgpt','tokeniz','fine-tun','lora','peft','attention','jax','hinton'] },
+  agents:     { label:'AI agents',         shelves:['agents'],    kw:['agent','harness','loop','mcp','second brain','voice ai','self-improv'] },
+  kubernetes: { label:'Kubernetes & cloud',shelves:['devops'],    kw:['kubernetes','k8s','docker','container','pod','aws','cloud','sre','uptime','devops'] },
+  claude:     { label:'Claude & AI tools', shelves:['claude'],    kw:['claude','prompt','opus','claude.md','agents.md'] },
+  sysdesign:  { label:'System design',     shelves:['sysdesign'], kw:['system design','hld','database','redis','kafka','load balancer','scal','backend','api design','ec2'] },
+  dsa:        { label:'DSA',               shelves:['dsa'],       kw:['dsa','algorithm','data structure','competitive programming','leetcode'] },
+  interview:  { label:'Interview prep',    shelves:['interview'], kw:['interview'] },
+  jobs:       { label:'Jobs & hiring',     shelves:['jobs'],      kw:['hiring','job','careers','visa','sponsor','recruit','remote','talent'] },
+  outreach:   { label:'Outreach & brand',  shelves:['outreach'],  kw:['cold email','outreach','pitch','founder','personal brand','ads','views'] },
+  product:    { label:'Building products', shelves:['product'],   kw:['product','side project','startup','ship','open source','portfolio','content factory'] },
+  hardware:   { label:'Hardware',          shelves:['hardware'],  kw:['hardware','device','iphone','raspberry','on-device','airpod'] },
+  security:   { label:'Security & networking', shelves:['security'], kw:['security','certificate','tls','network','encryption','vulnerab'] },
+  ui:         { label:'UI & handy sites',  shelves:['ui'],        kw:['ui','component','design','website','toolbox'] },
+  career:     { label:'Career & mindset',  shelves:['career'],    kw:['career','mindset','senior','motivation','resume'] },
+};
+const ALIAS = { llms:'llm', 'large language models':'llm', 'language models':'llm', 'machine learning':'llm', ml:'llm', ai:'llm', genai:'llm', transformers:'llm',
+  agent:'agents', agentic:'agents', harness:'agents', 'harness engineering':'agents', mcp:'agents', rag:'agents',
+  k8s:'kubernetes', kube:'kubernetes', docker:'kubernetes', containers:'kubernetes', cloud:'kubernetes', aws:'kubernetes', devops:'kubernetes', sre:'kubernetes',
+  'claude code':'claude', prompting:'claude', prompts:'claude', 'system design':'sysdesign', 'sys design':'sysdesign', hld:'sysdesign', backend:'sysdesign', databases:'sysdesign', database:'sysdesign',
+  algorithms:'dsa', 'job hunting':'jobs', 'job hunt':'jobs', 'job seeking':'jobs', 'job searching':'jobs', 'job guide':'jobs', resume:'career',  leetcode:'dsa', interviews:'interview', 'interview prep':'interview', job:'jobs', hiring:'jobs', 'job search':'jobs', visa:'jobs', careers:'jobs', 'cold email':'outreach', 'cold emails':'outreach', 'cold mailing':'outreach', networking:'security',
+  products:'product', 'side projects':'product', startup:'product', startups:'product', 'building products':'product', raspberry:'hardware', 'raspberry pi':'hardware', ui:'ui', design:'ui', mindset:'career', motivation:'career' };
+const _unused = p => ['llms','k8s','kube','docker','aws','cloud','devops','sre','agent','agentic','harness','mcp','rag','hld','backend','leetcode','hiring','visa','careers','ml','ai','genai','ui','design','mindset','motivation','startup','startups','products','databases','database','prompts','prompting','algorithms','interviews','job','networking'].includes(p);
+const DO = it => it.ty === 'video' ? ['▶', 'Watch'] : it.ty === 'image' ? ['👀', 'Look'] : READ.includes(it.ty) ? ['📖', 'Read'] : ['🛠️', 'Explore'];
+const FILLER = /\b(resources?|guides?|materials?|links?|tutorials?|tips|info|information|can|could|would|you|u|pls|please|list|show|give|get|fetch|find|me|my|all|every|everything|anything|content|contents|stuff|things|items|posts?|saves?|saved|that|which|is|are|was|were|related|relating|about|around|regarding|on|to|of|the|a|an|i|have|has|what|did|do|any|from|in|with|for|kind|type|types|whether|its|it's|or anything|at all)\b/g;
+let CHAT = [], LAST = null;
+
+function parseQuery(raw){
+  let q = ' ' + raw.toLowerCase().replace(/[?!.]/g, ' ') + ' ';
+  const f = { types:null, time:0, fresh:false, todo:false, star:false, later:false, all:/\b(all|every|everything|list)\b/.test(q) };
+  const T = [[/\b(videos?|watch(able)?|lectures?|talks?|courses?|clips?)\b/, ['video']], [/\b(read(able|s)?|threads?|articles?|text|blogs?)\b/, READ], [/\b(sites?|websites?|tools?|repos?|github|sheets?|spreadsheets?)\b/, TRY], [/\b(images?|visuals?|cheat ?sheets?|infographics?)\b/, ['image']]];
+  const only = /\b(only|just)\b/.test(q);
+  for (const [re, types] of T) if (re.test(q)) { f.types = [...(f.types || []), ...types]; q = q.replace(re, ' '); }
+  if (f.types && !only && /\b(post|link|video|text|anything)\b.*\bor\b/.test(raw.toLowerCase()) && f.types.length > 3) f.types = null; // "post or link or video or text" = everything
+  const tm = q.match(/\b(under|less than|below|within|max|<|upto|up to)\s*(\d+)\s*(h|hr|hrs|hours?|m|mins?|minutes?)?/);
+  if (tm) { f.time = +tm[2] * (/^h/.test(tm[3] || '') ? 60 : 1); q = q.replace(tm[0], ' '); }
+  if (/\b(short|quick)\b/.test(q)) { f.time = f.time || 15; q = q.replace(/\b(short|quick)( ones?)?\b/g, ' '); }
+  if (/\b(new|recent|latest|this week|fresh)\b/.test(q)) { f.fresh = true; q = q.replace(/\b(new|recent|latest|this week|fresh)\b/g, ' '); }
+  if (/\b(not done|unfinished|pending|haven't|unwatched|unread)\b/.test(q)) { f.todo = true; q = q.replace(/\b(not done|unfinished|pending|haven't \w+|unwatched|unread)\b/g, ' '); }
+  if (/\b(starred|favou?rites?)\b/.test(q)) { f.star = true; q = q.replace(/\b(starred|favou?rites?)\b/g, ' '); }
+  if (/\bwatch later\b/.test(q)) { f.later = true; q = q.replace(/\bwatch later\b/g, ' '); }
+  q = q.replace(/\b(only|just|ones?|those|these|them)\b/g, ' ');
+  // split topics on or/and/commas
+  const parts = q.replace(FILLER, ' ').split(/\s*(?:,|\/|&|\bor\b|\band\b|\bplus\b|\balso\b)\s*/).map(x => x.replace(/\s+/g, ' ').trim()).filter(x => x.length > 1);
+  const topics = [];
+  for (const p of parts) {
+    const key = TOPICS[p] ? p : ALIAS[p] || Object.keys(ALIAS).find(k => p.includes(k) && k.length > 3 && ALIAS[k]) && ALIAS[Object.keys(ALIAS).find(k => p.includes(k) && k.length > 3)];
+    if (key) { if (!topics.some(t => t.key === key)) topics.push({ key, ...TOPICS[key], asked:p }); }
+    else topics.push({ key:'kw:' + p, label:'“' + p + '”', shelves:[], kw:[p] });
+  }
+  return { f, topics };
 }
-function renderAsk(q){
-  const el = $('#answer');
-  if (!q.trim()) { el.innerHTML = ''; return; }
-  const r = ask(q);
-  if (!r || !r.hits.length) { el.innerHTML = `<div class="empty">Nothing in your vault matches “${esc(q)}” yet.</div>`; return; }
-  const byShelf = {}; r.hits.forEach(h => { const s = shelfOf(h); byShelf[s.name] = (byShelf[s.name] || 0) + 1; });
-  const vids = r.hits.filter(h => h.ty === 'video'), time = r.hits.reduce((s, h) => s + (h.m || 0), 0);
-  el.innerHTML = `<div class="answer-head"><p>You saved <b>${r.hits.length}${r.hits.length === 12 ? '+' : ''}</b> things about <b>“${esc(q)}”</b>, mostly in ${Object.entries(byShelf).sort((a,b) => b[1]-a[1]).slice(0,2).map(([n]) => `<b>${esc(n)}</b>`).join(' and ')}. ${vids.length ? `${vids.length} are videos.` : ''} About ${time >= 60 ? Math.round(time/60) + ' hours' : time + ' min'} of material in total.</p>
-    <p class="muted small">Start with: <a href="#" data-open="${r.hits[0].id}">${esc(r.hits[0].ti)}</a></p></div>
-    <div class="grid">${r.hits.map(x => card(x)).join('')}</div>`;
+const kwRe = {}; const hasKw = (h, k) => k.length <= 4 ? (kwRe[k] ||= new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 's?\\b')).test(h) : h.includes(k);
+function matchTopic(t, pool){
+  const scored = pool.map(it => { const h = hay(it); let s = t.shelves.includes(sKey(it)) ? 5 : 0;
+    for (const k of t.kw) if (hasKw(h, k)) s += hasKw(it.ti.toLowerCase(), k) ? 3 : 1; return [it, s]; });
+  return scored.filter(x => x[1] >= (t.shelves.includes(sKey(x[0])) ? 1 : 2)).sort((a,b) => b[1] - a[1] || (b[0].a||b[0].d).localeCompare(a[0].a||a[0].d)).map(x => x[0]);
 }
-function renderSuggest(){
-  const s = ['harness engineering', 'kubernetes', 'system design', 'cold email', 'visa sponsors', 'LLM from scratch', 'interview', 'claude code', 'voice agents', 'UI components'];
-  $('#suggest').innerHTML = s.map(x => `<button class="chip" data-ask="${x}">${x}</button>`).join('');
+function applyF(list, f){
+  return list.filter(it => (!f.types || f.types.includes(it.ty)) && (!f.time || (it.m || 5) <= f.time) && (!f.fresh || isFresh(it)) && (!f.todo || !STATE.done[it.id]) && (!f.star || STATE.star[it.id]) && (!f.later || STATE.later[it.id]));
 }
+const fmtTime = m => m >= 60 ? (m / 60).toFixed(m % 60 ? 1 : 0).replace('.0', '') + ' h' : m + ' min';
+function describeF(f){ const b = [];
+  if (f.types) b.push(f.types.includes('video') && f.types.length === 1 ? 'videos only' : f.types === READ || f.types.every(t => READ.includes(t)) ? 'reads only' : f.types.every(t => TRY.includes(t)) ? 'sites, repos & sheets only' : 'selected types');
+  if (f.time) b.push('≤ ' + fmtTime(f.time)); if (f.fresh) b.push('saved this week'); if (f.todo) b.push('not done yet'); if (f.star) b.push('starred'); if (f.later) b.push('in watch later');
+  return b.join(', '); }
+
+function answer(raw){
+  let { f, topics } = parseQuery(raw);
+  const hasFilter = f.types || f.time || f.fresh || f.todo || f.star || f.later;
+  const followUp = /^\s*(only|just|under|less|below|within|and|now|also|but|what about|the|short|quick|not done|unwatched|starred)\b/i.test(raw) || raw.trim().split(/\s+/).length <= 3;
+  if (!topics.length && LAST && hasFilter && followUp) { topics = LAST.topics; f = { ...LAST.f, ...Object.fromEntries(Object.entries(f).filter(([k, v]) => v && k !== 'all')) }; }
+  if (!topics.length && !hasFilter) {
+    const words = raw.toLowerCase().replace(FILLER, ' ').trim();
+    if (!words) return { text:`Ask me about any topic you've saved. For example: <i>“list everything on LLM or kubernetes”</i>, <i>“only videos under 30 min about agents”</i> or <i>“what can I read on system design?”</i>`, groups:[] };
+    topics = [{ key:'kw:' + words, label:'“' + words + '”', shelves:[], kw:words.split(/\s+/) }];
+  }
+  const pool = dedupe(DATA.items.filter(visible));
+  if (!topics.length) topics = [{ key:'all', label:'your whole library', shelves:Object.keys(DATA.shelves), kw:[] }];
+  const used = new Set(), groups = topics.map(t => { const items = applyF(matchTopic(t, pool), f).filter(it => !used.has(it.id)); items.forEach(i => used.add(i.id)); return { t, items }; });
+  LAST = { topics, f };
+  const all = groups.flatMap(g => g.items);
+  if (!all.length) return { text:`I couldn't find anything on ${topics.map(t => '<b>' + esc(t.label) + '</b>').join(' or ')}${describeF(f) ? ' (' + describeF(f) + ')' : ''} in your vault. Try a broader word, or drop a filter.`, groups:[] };
+  const cnt = k => all.filter(i => DO(i)[1] === k).length, watchMin = all.filter(i => i.ty === 'video').reduce((s, i) => s + (i.m || 0), 0);
+  const kinds = [cnt('Watch') && `<b>${cnt('Watch')}</b> to watch${watchMin ? ` (~${fmtTime(watchMin)})` : ''}`, cnt('Read') && `<b>${cnt('Read')}</b> to read`, cnt('Explore') && `<b>${cnt('Explore')}</b> to explore (sites, repos, sheets)`, cnt('Look') && `<b>${cnt('Look')}</b> visual${cnt('Look') > 1 ? 's' : ''}`].filter(Boolean);
+  const LOOSE = ['raspberry', 'raspberry pi', 'networking', 'design', 'ml', 'machine learning', 'ai', 'genai', 'database', 'databases', 'startup', 'startups'];
+  const fuzzy = groups.filter(g => g.t.asked && LOOSE.includes(g.t.asked) && !g.items.some(i => hasKw(hay(i), g.t.asked)));
+  const startWith = all.find(i => !STATE.done[i.id] && i.ty !== 'image') || all[0];
+  const pre = fuzzy.length ? `Nothing mentions ${fuzzy.map(g => '“' + esc(g.t.asked) + '”').join(' or ')} directly, so here's the closest shelf. ` : '';
+  const text = pre + `I found <b>${all.length}</b> item${all.length > 1 ? 's' : ''} ${topics[0].key === 'all' ? 'in your library' : 'on ' + groups.filter(g => g.items.length).map(g => `<b>${esc(g.t.label)}</b> (${g.items.length})`).join(' and ')}${describeF(f) ? `, ${describeF(f)}` : ''}: ${kinds.join(', ')}.<br>Good place to start: <a href="#" data-open="${startWith.id}">${esc(startWith.ti)}</a>.`;
+  return { text, groups };
+}
+function row(it){
+  const [ic, verb] = DO(it), sh = shelfOf(it);
+  return `<div class="ans-row ${STATE.done[it.id] ? 'done' : ''}" style="--c:${sh.color}" data-id="${it.id}" tabindex="0" role="button">
+    <span class="verb" title="${verb}">${ic}<small>${verb}</small></span>
+    <div class="ans-main"><b>${esc(it.ti)}</b><p>${esc(it.su || 'Shared link (summary coming with the next sync).')}</p>
+      <small>${TYPES[it.ty] || it.ty}${it.m ? ' · ' + mins(it) : ''} · ${sh.emoji} ${esc(sh.short || sh.name)}${STATE.done[it.id] ? ' · ✓ done' : ''}</small></div>
+    <a class="ic" href="${esc((it.ln && it.ln[0] && it.ln[0][1]) || postUrl(it))}" target="_blank" rel="noopener" data-act="open" aria-label="Open">↗</a></div>`;
+}
+function renderChat(){
+  const el = $('#chat'); $('#chat-clear').hidden = !CHAT.length;
+  if (!CHAT.length) {
+    el.innerHTML = `<div class="bubble bot"><p>Hi! I know everything you've saved. Ask in plain words and I'll pull every match: posts, videos, sites, sheets, anything. Each one comes with a short summary and whether it's something to watch, read or explore.</p>
+      <div class="chips">${['List everything on LLM or kubernetes', 'Only videos under 30 min about agents', 'What can I read on system design?', 'Cold email and job hunting resources', 'Show new saves this week', 'Short Claude tutorials'].map(x => `<button class="chip" data-ask="${x}">${x}</button>`).join('')}</div></div>`;
+    return;
+  }
+  el.innerHTML = CHAT.map(m => m.role === 'me' ? `<div class="bubble me">${esc(m.text)}</div>` :
+    `<div class="bubble bot"><p>${m.a.text}</p>${m.a.groups.filter(g => g.items.length).map(g => `<div class="ans-group"><h4>${esc(g.t.label)} <span>${g.items.length}</span></h4>${g.items.map(row).join('')}</div>`).join('')}
+     ${m.a.groups.length ? `<div class="chips follow">${['Only videos', 'Only reads', 'Under 15 min', 'Not done yet'].map(x => `<button class="chip" data-ask="${x}">${x}</button>`).join('')}</div>` : ''}</div>`).join('');
+  el.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function sendChat(text){ if (!text.trim()) return; CHAT.push({ role:'me', text }); CHAT.push({ role:'bot', a: answer(text) }); renderChat(); $('#q-ask').value = ''; }
+function renderAsk(){ renderChat(); }
 
 /* ================= my stuff + settings ================= */
 function renderMe(){
@@ -387,7 +473,7 @@ function renderAll(full = true){
   renderBanner(); renderStats(); renderToday(); renderContinue(); renderFresh(); renderPathsHome();
   renderShelves(); renderPath(); renderActive(); renderList();
   if (F.nav === 'me') renderMe();
-  if (F.nav === 'ask') renderAsk($('#q-ask').value);
+  if (F.nav === 'ask') renderChat();
   if (full) renderTypes();
 }
 function openShelf(k){ F.shelf = k; F.focusIdx = 0; go('library'); renderAll(false); }
@@ -396,8 +482,9 @@ function wire(){
   const h = new Date().getHours();
   $('#greet').textContent = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
   $('#q').addEventListener('input', e => { F.q = e.target.value.trim(); F.focusIdx = 0; renderActive(); renderList(); });
-  $('#q-home').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { $('#q-ask').value = e.target.value; go('ask'); renderAsk(e.target.value); } });
-  $('#q-ask').addEventListener('input', e => renderAsk(e.target.value));
+  $('#q-home').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) { go('ask'); sendChat(e.target.value); e.target.value = ''; } });
+  $('#chat-form').addEventListener('submit', e => { e.preventDefault(); sendChat($('#q-ask').value); });
+  $('#chat-clear').onclick = () => { CHAT = []; LAST = null; renderChat(); };
   $('#source').onchange = e => { F.source = e.target.value; F.focusIdx = 0; renderActive(); renderList(); };
   $('#time').onchange = e => { F.time = +e.target.value; renderActive(); renderList(); };
   $('#sort').onchange = e => { F.sort = e.target.value; F.todaySalt++; renderList(); };
@@ -413,7 +500,7 @@ function wire(){
   $('#rename-toggle').onclick = () => { const r = $('#rename'); r.hidden = !r.hidden; if (!r.hidden) renderRename(); };
   $('#rename').addEventListener('change', e => { const k = e.target.dataset.rename; if (!k) return; const v = e.target.value.trim();
     if (!v || v === DATA.shelves[k].name) delete STATE.shelfNames[k]; else STATE.shelfNames[k] = v; persist(); renderAll(false); toast('Shelf renamed ✓'); });
-  document.addEventListener('submit', e => { if (e.target.id === 'add-form') { e.preventDefault(); saveAdd(e.target); } });
+  document.addEventListener('submit', e => { if (e.target.id === 'chat-form') return; if (e.target.id === 'add-form') { e.preventDefault(); saveAdd(e.target); } });
   document.addEventListener('input', e => { if (e.target.id === 'note') { const id = e.target.dataset.id, v = e.target.value.trim(); if (v) STATE.notes[id] = v; else delete STATE.notes[id]; persist(); } });
   document.addEventListener('change', e => { if (e.target.id === 'move') { const id = e.target.dataset.id, k = e.target.value, it = DATA.items.find(i => i.id === id);
     if (k === it.sh) delete STATE.moves[id]; else STATE.moves[id] = k; persist(); renderAll(false); openSheet(id); toast('Moved ✓'); } });
@@ -422,7 +509,7 @@ function wire(){
     if (t.closest('[data-close]')) { closeSheet(); renderAll(false); return; }
     const nv = t.closest('[data-nav]'); if (nv) { go(nv.dataset.nav); return; }
     const ex = t.closest('[data-export]'); if (ex) { exportLib(ex.dataset.export); return; }
-    const ak = t.closest('[data-ask]'); if (ak) { $('#q-ask').value = ak.dataset.ask; renderAsk(ak.dataset.ask); return; }
+    const ak = t.closest('[data-ask]'); if (ak) { if (F.nav !== 'ask') go('ask'); sendChat(ak.dataset.ask); return; }
     const op = t.closest('[data-open]'); if (op) { e.preventDefault(); openSheet(op.dataset.open); return; }
     const pa = t.closest('[data-path]'); if (pa) { openShelf(pa.dataset.path); return; }
     const sh = t.closest('[data-shelf]'); if (sh) { F.shelf = F.shelf === sh.dataset.shelf ? null : sh.dataset.shelf; F.focusIdx = 0; renderAll(false); if (F.shelf) $('#path-block').hidden ? $('#list-block').scrollIntoView({ behavior:'smooth' }) : $('#path-block').scrollIntoView({ behavior:'smooth' }); return; }
@@ -470,7 +557,7 @@ function surprise(){
   DATA.items = DATA.items.concat(INBOX.filter(x => !BASE.some(b => b.id === x.id)));
   applyTheme();
   $('#app').hidden = false; $('#bottom').hidden = false;
-  wire(); renderSuggest(); renderAll();
+  wire(); renderChat(); renderAll();
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
   window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), version: 2 };
   // Incoming share (Android share sheet) or bookmarklet
