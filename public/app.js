@@ -78,7 +78,12 @@ async function firebaseStore(){
   };
 }
 
-let saveT; function persist(){ clearTimeout(saveT); saveT = setTimeout(() => store.saveState(STATE).catch(() => toast('Saved on this device — will sync when online')), 400); }
+let saveT, dirty = false;
+function persist(){ dirty = true; clearTimeout(saveT); saveT = setTimeout(flush, 400); }
+function flush(){ clearTimeout(saveT); if (!dirty || !store) return; dirty = false; store.saveState(STATE).catch(() => toast('Saved on this device, will sync when online')); }
+function onLeave(){ try { saveYtPos(); noteXWatch(); } catch {} flush(); }
+addEventListener('pagehide', onLeave);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') onLeave(); else if (VW) VW.since = Date.now(); });
 
 /* ================= helpers ================= */
 const shelfOf = it => { const k = sKey(it); const s = DATA.shelves[k] || { name:'Other', emoji:'📌', color:'#888', short:'Other' }; const n = STATE.shelfNames[k]; return n ? { ...s, name:n, short:n } : s; };
@@ -149,7 +154,8 @@ function renderStats(){
 }
 
 function pickToday(){
-  const pool = dedupe(DATA.items.filter(i => visible(i) && !STATE.done[i.id]));
+  const busy = new Set(inProgress().map(i => i.id));
+  const pool = dedupe(DATA.items.filter(i => visible(i) && !STATE.done[i.id] && !busy.has(i.id)));
   const seed = today() + ':' + F.todaySalt, pick = types => seeded(pool.filter(i => types.includes(i.ty)), seed)[0];
   return [['🎬 Watch', pick(['video'])], ['📖 Read', pick(READ)], ['🛠️ Try', pick(TRY)]].filter(x => x[1]);
 }
@@ -158,11 +164,12 @@ function renderToday(){
   $('#today').innerHTML = t.length ? t.map(([l, it]) => card(it, { label:l })).join('') : `<div class="empty">You've finished everything. Impressive.</div>`;
 }
 function renderContinue(){
-  const prog = inProgress(); const c = [...prog, ...DATA.items.filter(i => STATE.notes[i.id] && !STATE.done[i.id] && !prog.includes(i))];
-  $('#continue-block').hidden = !c.length; $('#continue').innerHTML = c.map(x => card(x, { label: STATE.progress[x.id]?.t ? '▶ ' + fmtClock(STATE.progress[x.id].t) : STATE.progress[x.id] ? '▶ Started' : '📝 Note' })).join('');
+  const prog = inProgress(); const c = [...prog, ...DATA.items.filter(i => STATE.notes[i.id] && !STATE.done[i.id] && !prog.includes(i))].slice(0, 10);
+  $('#continue-block').hidden = !c.length; $('#continue').innerHTML = c.map(x => card(x, { label: STATE.progress[x.id]?.t ? '▶ ' + (STATE.progress[x.id].est ? '~' : '') + fmtClock(STATE.progress[x.id].t) : STATE.progress[x.id] ? '▶ Started' : '📝 Note' })).join('');
 }
 function renderFresh(){
-  const f = dedupe(DATA.items.filter(i => visible(i) && isFresh(i)).sort((a,b) => (b.a||b.d).localeCompare(a.a||a.d) || b.d.localeCompare(a.d)));
+  const shown = new Set([...pickToday().map(x => x[1].id), ...inProgress().map(i => i.id), ...DATA.items.filter(i => STATE.notes[i.id]).map(i => i.id)]);
+  const f = dedupe(DATA.items.filter(i => visible(i) && isFresh(i) && !STATE.done[i.id] && !shown.has(i.id)).sort((a,b) => (b.a||b.d).localeCompare(a.a||a.d) || b.d.localeCompare(a.d)));
   $('#fresh-block').hidden = !f.length;
   $('#see-new').textContent = f.length > 8 ? `See all ${f.length} new →` : 'See all new →';
   $('#fresh').innerHTML = f.slice(0, 8).map(x => card(x)).join('');
@@ -257,6 +264,16 @@ const NOFRAME = /(^|\.)(github\.com|x\.com|twitter\.com|linkedin\.com|instagram\
 const fmtClock = t => { t = Math.max(0, Math.floor(t)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(sec).padStart(2, '0'); };
 const parseClock = v => { const p = String(v).trim().split(':').map(Number); if (p.some(isNaN)) return null; return p.reduce((a, b) => a * 60 + b, 0); };
 let VW = null, ytPlayer = null, ytTimer = null;
+// X's embedded player can't report its position, so we estimate it from how long the video was open on screen.
+function noteXWatch(){
+  if (!VW || !VW.since) return; const s = VW.srcs[VW.tab]; if (s.kind !== 'tweet' || VW.it.ty !== 'video') { VW.since = 0; return; }
+  const secs = (Date.now() - VW.since) / 1000; VW.since = 0;
+  if (secs < 20 || VW.manual) return;
+  const p = STATE.progress[VW.it.id] || {}, cap = VW.it.m ? VW.it.m * 60 : Infinity;
+  STATE.progress[VW.it.id] = { ...p, t: Math.min(cap, (p.t || 0) + secs), est: 1, at: Date.now() };
+  if (VW.it.m && !VW.it.mx && STATE.progress[VW.it.id].t >= cap * .95) STATE.done[VW.it.id] = Date.now();
+  persist();
+}
 
 function viewSources(it){
   const src = [];
@@ -276,7 +293,7 @@ function viewSources(it){
 function openViewer(id, tab = 0){
   const it = DATA.items.find(i => i.id === id); if (!it) return;
   const srcs = viewSources(it); if (!srcs.length) { window.open(postUrl(it), '_blank'); return; }
-  VW = { it, srcs, tab: Math.min(tab, srcs.length - 1) };
+  VW = { it, srcs, tab: Math.min(tab, srcs.length - 1), since: Date.now(), manual: false };
   closeSheet();
   if (!STATE.progress[id]) { STATE.progress[id] = { t:0, at:Date.now() }; } else STATE.progress[id].at = Date.now();
   persist();
@@ -305,7 +322,7 @@ function renderVwBar(){
   const { it, srcs, tab } = VW, s = srcs[tab], pr = STATE.progress[it.id] || {};
   const isVid = s.kind === 'yt' || (s.kind === 'tweet' && it.ty === 'video');
   $('#vw-bar').innerHTML = `
-    ${isVid && s.kind === 'tweet' ? `<label class="vw-pos">Stopped at <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>` : ''}
+    ${isVid && s.kind === 'tweet' ? `<label class="vw-pos">${pr.t ? (pr.est ? 'Last time you watched about' : 'You stopped at') : 'Stopped at'} <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>${pr.t ? `<span class="muted small hide-sm">Drag the video to ${pr.est ? '~' : ''}${fmtClock(pr.t)} to continue</span>` : ''}` : ''}
     ${isVid && s.kind === 'yt' && pr.t ? `<span class="muted small">Resumes at ${fmtClock(pr.t)}${pr.d ? ' of ' + fmtClock(pr.d) : ''}</span>` : ''}
     <span class="grow"></span>
     ${STATE.progress[it.id] && !STATE.done[it.id] ? `<button class="btn small ghost" data-vact="forget" title="Remove from Continue watching">✕ <span class="hide-sm">Not watching</span></button>` : ''}
@@ -315,7 +332,10 @@ function renderVwBar(){
 }
 function closeViewer(){
   if (!VW) return; saveYtPos(); stopYt();
-  const pos = $('#vw-pos'); if (pos && pos.value.trim()) { const t = parseClock(pos.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, at:Date.now() }; persist(); } }
+  const pos = $('#vw-pos'), typed = pos && pos.value.trim() && pos.dataset.touched;
+  if (typed) { const t = parseClock(pos.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, est:0, at:Date.now() }; } }
+  else noteXWatch();
+  flush();
   $('#viewer').hidden = true; $('#vw-body').innerHTML = ''; document.body.style.overflow = ''; VW = null; renderAll(false);
 }
 function loadYtApi(){ return window.YT && YT.Player ? Promise.resolve() : new Promise(res => { window.onYouTubeIframeAPIReady = res; const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); }); }
@@ -358,7 +378,7 @@ function openSheet(id){
     ${it.im ? `<img src="${IMG + esc(it.im)}" alt="" onerror="this.remove()">` : ''}
     <p>${esc(it.su || '')}</p>
     <p class="small muted">${esc(it.h || '')}${it.h ? ' · ' : ''}posted ${fmtDate(it.d)} · ${[it.s.includes('b') && 'bookmarked', it.s.includes('l') && 'liked', it.s.includes('s') && 'shared from phone'].filter(Boolean).join(' & ')}</p>
-    ${viewSources(it).length ? `<button class="btn primary big" data-view="${it.id}">${it.ty === 'video' ? (STATE.progress[it.id]?.t ? '▶ Continue at ' + fmtClock(STATE.progress[it.id].t) : '▶ Play in Stash') : READ.includes(it.ty) ? '📖 Read in Stash' : '👀 Open in Stash'}</button>` : ''}
+    ${viewSources(it).length ? `<button class="btn primary big" data-view="${it.id}">${it.ty === 'video' ? (STATE.progress[it.id]?.t ? '▶ Continue' + (viewSources(it)[0]?.kind === 'yt' ? ' at ' : ' from ~') + fmtClock(STATE.progress[it.id].t) : '▶ Play in Stash') : READ.includes(it.ty) ? '📖 Read in Stash' : '👀 Open in Stash'}</button>` : ''}
     <div class="links">${linksHtml(it)}</div>
     ${sims.length ? `<details class="sims"><summary>You saved ${sims.length} similar post${sims.length > 1 ? 's' : ''}</summary>${sims.map(s => `<a href="${esc(postUrl(s))}" target="_blank" rel="noopener">${esc(s.ti)} · ${esc(s.h)} ↗</a>`).join('')}</details>` : ''}
     <label class="note"><span>📝 Your note</span><textarea id="note" data-id="${it.id}" rows="3" placeholder="e.g. watched till 40:00 · use for the AI+networking pitch">${esc(STATE.notes[it.id] || '')}</textarea></label>
@@ -601,7 +621,7 @@ function wire(){
   $('#rename').addEventListener('change', e => { const k = e.target.dataset.rename; if (!k) return; const v = e.target.value.trim();
     if (!v || v === DATA.shelves[k].name) delete STATE.shelfNames[k]; else STATE.shelfNames[k] = v; persist(); renderAll(false); toast('Shelf renamed ✓'); });
   document.addEventListener('submit', e => { if (e.target.id === 'chat-form') return; if (e.target.id === 'add-form') { e.preventDefault(); saveAdd(e.target); } });
-  document.addEventListener('change', e => { if (e.target.id === 'vw-pos' && VW) { const t = parseClock(e.target.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, at:Date.now() }; persist(); toast('Position saved: ' + fmtClock(t)); } } });
+  document.addEventListener('change', e => { if (e.target.id === 'vw-pos' && VW) { e.target.dataset.touched = 1; const t = parseClock(e.target.value); if (t != null) { VW.manual = true; STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, est:0, at:Date.now() }; persist(); toast('Position saved: ' + fmtClock(t)); } } });
   addEventListener('popstate', () => { if (VW) closeViewer(); });
   document.addEventListener('input', e => { if (e.target.id === 'note') { const id = e.target.dataset.id, v = e.target.value.trim(); if (v) STATE.notes[id] = v; else delete STATE.notes[id]; persist(); } });
   document.addEventListener('change', e => { if (e.target.id === 'move') { const id = e.target.dataset.id, k = e.target.value, it = DATA.items.find(i => i.id === id);
@@ -610,7 +630,7 @@ function wire(){
     const t = e.target;
     if (t.closest('[data-close]')) { closeSheet(); renderAll(false); return; }
     const pl = t.closest('[data-play],[data-view]'); if (pl) { e.preventDefault(); e.stopPropagation(); openViewer(pl.dataset.play || pl.dataset.view); return; }
-    const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); VW.tab = +vt.dataset.vtab; showSource(); return; }
+    const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); noteXWatch(); VW.tab = +vt.dataset.vtab; VW.since = Date.now(); showSource(); return; }
     const va = t.closest('[data-vact]'); if (va && VW) { const a = va.dataset.vact, id = VW.it.id;
       if (a === 'note') { closeViewer(); openSheet(id); setTimeout(() => $('#note')?.focus(), 50); return; }
       if (a === 'forget') { closeViewer(); delete STATE.progress[id]; persist(); renderAll(false); toast('Removed from Continue watching'); return; }

@@ -9,8 +9,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm install --no-save firebase-admin@12 firebase-tools@13
+        with: { node-version: 22 }
+      - run: npm install --no-save firebase-admin@12 firebase-tools@13 playwright@1
+      - name: Check library data
+        run: node scripts/lint.mjs
+      - name: Test the app
+        run: |
+          npx playwright install --with-deps chromium
+          python3 build_preview.py
+          node tests/smoke.mjs
       - name: Upsert library into Firestore
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
