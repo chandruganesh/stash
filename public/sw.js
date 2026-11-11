@@ -1,5 +1,19 @@
-const C='stash-v1', SHELL=['./','index.html','style.css','app.js','config.js','icon.svg','manifest.webmanifest'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)));self.skipWaiting();});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim();});
-self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==location.origin||u.pathname.endsWith('data.json'))return;
-e.respondWith(fetch(e.request).then(r=>{const cp=r.clone();caches.open(C).then(c=>c.put(e.request,cp));return r;}).catch(()=>caches.match(e.request)));});
+// Stash service worker: app shell network-first, static libs + thumbnails cache-first (for offline use).
+const SHELL = 'stash-shell-v2', ASSETS = 'stash-assets-v2';
+const PRE = ['/', '/index.html', '/style.css', '/app.js', '/config.js', '/icon.svg', '/icon-192.png', '/manifest.webmanifest'];
+self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(PRE))); self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => ![SHELL, ASSETS].includes(x)).map(x => caches.delete(x))))); self.clients.claim(); });
+self.addEventListener('fetch', e => {
+  const r = e.request; if (r.method !== 'GET') return;
+  const u = new URL(r.url);
+  if (u.origin === location.origin) {
+    if (u.pathname.startsWith('/__/')) return; // Firebase auth handler
+    e.respondWith(fetch(r).then(res => { const cp = res.clone(); caches.open(SHELL).then(c => c.put(u.pathname === '/' || u.search ? '/' : r, cp)); return res; })
+      .catch(() => caches.match(u.search ? '/' : r).then(m => m || caches.match('/'))));
+    return;
+  }
+  if (/^(www\.gstatic\.com|fonts\.googleapis\.com|fonts\.gstatic\.com|pbs\.twimg\.com)$/.test(u.hostname)) {
+    e.respondWith(caches.open(ASSETS).then(async c => { const hit = await c.match(r); if (hit) return hit;
+      try { const res = await fetch(r); if (res.ok || res.type === 'opaque') c.put(r, res.clone()); return res; } catch { return hit || Response.error(); } }));
+  }
+});

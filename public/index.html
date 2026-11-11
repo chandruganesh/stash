@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Stash · your learning vault</title>
 <meta name="theme-color" content="#0b0b12">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Stash">
 <link rel="manifest" href="manifest.webmanifest">
@@ -19,83 +20,162 @@
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-<!-- Lock screen (shown until signed in) -->
 <section id="lock" class="lock" hidden>
   <div class="lock-card">
-    <div class="logo-big">◐</div>
+    <div class="logo-big" aria-hidden="true">◐</div>
     <h1>Stash</h1>
     <p>Your private learning vault.</p>
     <button id="signin" class="btn primary">Sign in with Google</button>
-    <p id="lock-msg" class="muted small"></p>
+    <p id="lock-msg" class="muted small" role="status"></p>
   </div>
 </section>
 
 <main id="app" hidden>
   <header class="top">
-    <div class="brand"><span class="logo">◐</span> Stash</div>
+    <button class="brand" data-nav="home" aria-label="Stash home"><span class="logo" aria-hidden="true">◐</span> Stash</button>
+    <nav class="tabs" aria-label="Sections">
+      <button data-nav="home" class="on">Home</button>
+      <button data-nav="library">Library</button>
+      <button data-nav="ask">Ask</button>
+      <button data-nav="me">My stuff</button>
+    </nav>
     <div class="top-actions">
-      <button id="surprise" class="btn ghost" title="Surprise me (R)">🎲 <span class="hide-sm">Surprise me</span></button>
-      <button id="signout" class="btn ghost small" hidden>Sign out</button>
+      <button id="add-btn" class="btn ghost" aria-label="Add a link">＋ <span class="hide-sm">Add link</span></button>
+      <button id="surprise" class="btn ghost" aria-label="Surprise me">🎲 <span class="hide-sm">Surprise</span></button>
     </div>
   </header>
 
-  <section class="hero">
-    <p class="eyebrow" id="greet">Good evening</p>
-    <h1 class="display">What are we <em>learning</em> today?</h1>
-    <div class="search">
-      <span>⌕</span>
-      <input id="q" type="search" placeholder="Search Kubernetes, harness, cold email, system design…" autocomplete="off">
-      <kbd>/</kbd>
+  <div id="banner" class="banner" hidden role="status"></div>
+
+  <!-- HOME -->
+  <section class="view" id="v-home">
+    <div class="hero">
+      <p class="eyebrow" id="greet">Good evening</p>
+      <h1 class="display">What are we <em>learning</em> today?</h1>
+      <div class="search" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="q-home" type="search" placeholder="Ask your library… e.g. kubernetes, harness, cold email" autocomplete="off" aria-label="Ask your library">
+        <kbd>/</kbd>
+      </div>
+      <div class="stats" id="stats"></div>
     </div>
-    <div class="stats" id="stats"></div>
+
+    <section class="block">
+      <div class="block-head"><h2>Today's 3</h2><button class="link" id="reshuffle">Shuffle</button></div>
+      <p class="muted small sub">One to watch, one to read, one to try. A fresh pick every day from what you haven't finished.</p>
+      <div class="today" id="today"></div>
+    </section>
+
+    <section class="block" id="continue-block" hidden>
+      <div class="block-head"><h2>Pick up where you left off</h2></div>
+      <div class="rail" id="continue"></div>
+    </section>
+
+    <section class="block" id="fresh-block">
+      <div class="block-head"><h2>Fresh saves</h2><button class="link" id="see-new">See all new</button></div>
+      <div class="rail" id="fresh"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>Learning paths</h2></div>
+      <div class="paths" id="paths-home"></div>
+    </section>
   </section>
 
-  <section class="block" id="fresh-block">
-    <div class="block-head"><h2>Fresh this week</h2><span class="muted" id="fresh-count"></span></div>
-    <div class="rail" id="fresh"></div>
-  </section>
-
-  <section class="block">
-    <div class="block-head"><h2>Shelves</h2><button class="link" id="all-shelves">Show everything</button></div>
-    <div class="bento" id="shelves"></div>
-  </section>
-
-  <section class="block" id="list-block">
-    <div class="toolbar">
-      <div class="chips" id="types"></div>
-      <div class="tools">
-        <select id="source" aria-label="Source">
-          <option value="all">Bookmarks + Likes</option>
-          <option value="b">Bookmarks</option>
-          <option value="l">Likes</option>
-          <option value="star">★ Starred</option>
-          <option value="todo">Not done yet</option>
-          <option value="done">✓ Done</option>
-        </select>
-        <select id="sort" aria-label="Sort">
-          <option value="new">Newest</option>
-          <option value="old">Oldest</option>
-          <option value="shuffle">Shuffle</option>
-        </select>
-        <div class="seg" id="view">
-          <button data-v="grid" class="on" title="Cards">▦</button>
-          <button data-v="timeline" title="Timeline">☰</button>
-          <button data-v="focus" title="Focus mode">◉</button>
+  <!-- LIBRARY -->
+  <section class="view" id="v-library" hidden>
+    <section class="block first">
+      <div class="block-head"><h2>Shelves</h2><button class="link" id="all-shelves">Show everything</button></div>
+      <div class="bento" id="shelves"></div>
+    </section>
+    <section class="block" id="path-block" hidden>
+      <div class="block-head"><h2 id="path-title">Learning path</h2><span class="muted small" id="path-prog"></span></div>
+      <ol class="path" id="path"></ol>
+    </section>
+    <section class="block" id="list-block">
+      <div class="toolbar">
+        <div class="search slim" role="search"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Filter…" autocomplete="off" aria-label="Filter library"></div>
+        <div class="chips" id="types" role="group" aria-label="Type"></div>
+        <div class="tools">
+          <select id="source" aria-label="Show">
+            <option value="all">Everything</option>
+            <option value="new">New this week</option>
+            <option value="b">Bookmarks</option>
+            <option value="l">Likes</option>
+            <option value="s">Shared from phone</option>
+            <option value="star">★ Starred</option>
+            <option value="later">⏱ Watch later</option>
+            <option value="todo">Not done yet</option>
+            <option value="done">✓ Done</option>
+          </select>
+          <select id="time" aria-label="Time I have">
+            <option value="0">Any length</option>
+            <option value="5">≤ 5 min</option>
+            <option value="15">≤ 15 min</option>
+            <option value="45">≤ 45 min</option>
+            <option value="90">≤ 90 min</option>
+          </select>
+          <select id="sort" aria-label="Sort">
+            <option value="new">Newest saved</option>
+            <option value="old">Oldest</option>
+            <option value="short">Shortest first</option>
+            <option value="shuffle">Shuffle</option>
+          </select>
+          <div class="seg" id="view" role="group" aria-label="Layout">
+            <button data-v="grid" class="on" aria-label="Cards">▦</button>
+            <button data-v="timeline" aria-label="Timeline">☰</button>
+            <button data-v="focus" aria-label="Focus mode">◉</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="active-filter" id="active"></div>
-    <div id="list" class="grid"></div>
+      <div class="active-filter" id="active"></div>
+      <div id="list" class="grid" aria-live="polite"></div>
+    </section>
   </section>
 
-  <footer class="foot muted small" id="foot"></footer>
+  <!-- ASK -->
+  <section class="view" id="v-ask" hidden>
+    <div class="hero">
+      <p class="eyebrow">Ask your library</p>
+      <h1 class="display small-d">What did I save about…</h1>
+      <div class="search" role="search"><span aria-hidden="true">⌕</span><input id="q-ask" type="search" placeholder="harness engineering for agents" autocomplete="off" aria-label="Ask your library"></div>
+      <div class="chips suggest" id="suggest"></div>
+    </div>
+    <div id="answer" class="answer" aria-live="polite"></div>
+  </section>
+
+  <!-- ME -->
+  <section class="view" id="v-me" hidden>
+    <section class="block first"><div class="block-head"><h2>⏱ Watch later</h2><span class="muted small" id="later-sum"></span></div><div class="grid" id="later-list"></div></section>
+    <section class="block"><div class="block-head"><h2>★ Starred</h2></div><div class="grid" id="star-list"></div></section>
+    <section class="block"><div class="block-head"><h2>📝 With notes</h2></div><div class="grid" id="note-list"></div></section>
+    <section class="block settings">
+      <h2>Settings</h2>
+      <div class="set-row"><div><b>Appearance</b><small>Dark or light</small></div><div class="seg" id="theme"><button data-t="dark">Dark</button><button data-t="light">Light</button><button data-t="auto">Auto</button></div></div>
+      <div class="set-row"><div><b>Show low-signal posts</b><small>Hype posts with no actual resource are hidden by default</small></div><label class="switch"><input type="checkbox" id="show-low"><span></span></label></div>
+      <div class="set-row"><div><b>Export your library</b><small>Download everything, including notes and progress</small></div><div class="row-btns"><button class="btn small" data-export="md">Markdown</button><button class="btn small" data-export="csv">CSV</button><button class="btn small" data-export="json">JSON</button></div></div>
+      <div class="set-row col"><div><b>Save to Stash from any browser</b><small>Drag this button to your bookmarks bar. Click it on any page to save that page here.</small></div><a class="btn primary" id="bookmarklet" href="#">＋ Save to Stash</a></div>
+      <div class="set-row col"><div><b>Save from your phone</b><small>Install Stash on your home screen (Android: ⋮ → Install app; iPhone: Share → Add to Home Screen). On Android, Stash then shows up in the share sheet. On iPhone, copy the link and tap ＋ Add link.</small></div></div>
+      <div class="set-row"><div><b>Rename shelves</b><small>Your names only change how they're shown</small></div><button class="btn small" id="rename-toggle">Edit names</button></div>
+      <div id="rename" class="rename" hidden></div>
+      <div class="set-row"><div><b>Account</b><small id="who"></small></div><button id="signout" class="btn small">Sign out</button></div>
+      <p class="muted small" id="foot"></p>
+    </section>
+  </section>
 </main>
 
-<!-- Detail sheet -->
+<nav class="bottom" id="bottom" aria-label="Sections" hidden>
+  <button data-nav="home" class="on"><span>⌂</span>Home</button>
+  <button data-nav="library"><span>▦</span>Library</button>
+  <button data-nav="ask"><span>⌕</span>Ask</button>
+  <button data-nav="me"><span>★</span>Mine</button>
+</nav>
+
 <div id="sheet" class="sheet" hidden>
   <div class="sheet-bg" data-close></div>
-  <article class="sheet-card" id="sheet-card"></article>
+  <article class="sheet-card" id="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></article>
 </div>
+<div id="toast" class="toast" role="status" hidden></div>
 
 <script src="config.js"></script>
 <script src="app.js" type="module"></script>

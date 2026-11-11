@@ -1,7 +1,8 @@
 import re
 p='public/'
 html=open(p+'index.html').read(); css=open(p+'style.css').read(); js=open(p+'app.js').read(); data=open('data/library.json').read()
-js=js.replace("async load(){ const r = await fetch('data.json', {cache:'no-store'}); return r.json(); }","async load(){ return window.__DATA; }")
+js=re.sub(r"async load\(\)\{ const r = await fetch\('data\.json'.*?return r\.json\(\); \}", "async load(){ return window.__DATA; }", js, count=1)
+assert 'return window.__DATA' in js
 html=html.replace('<link rel="stylesheet" href="style.css">','<style>'+css+'</style>')
 html=html.replace('<script src="config.js"></script>\n<script src="app.js" type="module"></script>','<script>window.STASH_CONFIG={mode:"local"};window.__DATA='+data+';</script>\n<script type="module">'+js+'</script>')
 html=re.sub(r'<link rel="(manifest|icon|apple-touch-icon)"[^>]*>\n','',html)

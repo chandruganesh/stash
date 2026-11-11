@@ -1,2 +1,5 @@
-{"name":"Stash · learning vault","short_name":"Stash","start_url":"./","display":"standalone","background_color":"#0b0b12","theme_color":"#0b0b12",
-"icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
+{"name":"Stash · learning vault","short_name":"Stash","id":"/","start_url":"/","scope":"/","display":"standalone","background_color":"#0b0b12","theme_color":"#0b0b12",
+"description":"Your private library of X bookmarks and likes, summarised and shelved.",
+"icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}],
+"share_target":{"action":"/","method":"GET","params":{"title":"title","text":"text","url":"url"}},
+"shortcuts":[{"name":"Ask my library","url":"/?nav=ask"},{"name":"Add a link","url":"/?add=1"}]}

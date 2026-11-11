@@ -3,7 +3,7 @@ window.STASH_CONFIG = {
   mode: 'firebase',
   firebase: {
     apiKey: "AIzaSyB5VWdaNU52kQT7I8tGsMSFQ1EwNJ4CtJU",
-    authDomain: "knowledge-library-788e1.firebaseapp.com",
+    authDomain: "knowledge-library-788e1.web.app",
     projectId: "knowledge-library-788e1",
     storageBucket: "knowledge-library-788e1.firebasestorage.app",
     messagingSenderId: "842162563697",
