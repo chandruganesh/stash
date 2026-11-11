@@ -19,6 +19,8 @@ const localStore = {
   async load(){ const r = await fetch('data.json', { cache:'no-store' }); return r.json(); },
   async loadState(){ try { return JSON.parse(localStorage.getItem('stash-state')) || blankState(); } catch { return blankState(); } },
   async saveState(s){ try { localStorage.setItem('stash-state', JSON.stringify(s)); } catch {} },
+  async patch(){ return this.saveState(STATE); },
+  subscribe(){},
   async inbox(){ try { return JSON.parse(localStorage.getItem('stash-inbox')) || []; } catch { return []; } },
   async addInbox(it){ const a = await this.inbox(); a.push(it); try { localStorage.setItem('stash-inbox', JSON.stringify(a)); } catch {} },
   async removeInbox(ids){ const a = (await this.inbox()).filter(x => !ids.includes(x.id)); try { localStorage.setItem('stash-inbox', JSON.stringify(a)); } catch {} },
@@ -65,12 +67,23 @@ async function firebaseStore(){
   return {
     who: user.email,
     async load(){
-      const meta = await S.getDoc(S.doc(db, 'meta', 'library'));
-      const snap = await S.getDocs(S.collection(db, 'items'));
-      return { ...(meta.data() || {}), items: snap.docs.map(d => d.data()), fromCache: snap.metadata.fromCache };
+      const meta = (await S.getDoc(S.doc(db, 'meta', 'library'))).data() || {};
+      let items, fromCache = false;
+      if (meta.chunks) { // whole library in a few documents → 1 read per ~400 posts
+        const snaps = await Promise.all(Array.from({ length: meta.chunks }, (_, i) => S.getDoc(S.doc(db, 'lib', 'chunk_' + i))));
+        items = snaps.flatMap(d => (d.data() || {}).items || []); fromCache = snaps.some(d => d.metadata.fromCache);
+      } else { const snap = await S.getDocs(S.collection(db, 'items')); items = snap.docs.map(d => d.data()); fromCache = snap.metadata.fromCache; }
+      return { ...meta, items, fromCache };
     },
     async loadState(){ const d = await S.getDoc(S.doc(db, 'state', 'me')); return d.exists() ? d.data() : blankState(); },
-    async saveState(s){ await S.setDoc(S.doc(db, 'state', 'me'), s); },
+    // Field-level patch: only the entries that changed are written, so devices never overwrite each other.
+    async patch(changes){
+      const ref = S.doc(db, 'state', 'me'), args = [];
+      for (const [kind, key, val] of changes) args.push(new S.FieldPath(kind, key), val === undefined ? S.deleteField() : val);
+      try { await S.updateDoc(ref, ...args); }
+      catch (e) { if (e.code === 'not-found') { await S.setDoc(ref, blankState()); await S.updateDoc(ref, ...args); } else throw e; }
+    },
+    subscribe(cb){ return S.onSnapshot(S.doc(db, 'state', 'me'), d => { if (!d.metadata.hasPendingWrites && d.exists()) cb(d.data()); }); },
     async inbox(){ const q = await S.getDocs(S.collection(db, 'inbox')); return q.docs.map(d => d.data()); },
     async addInbox(it){ await S.setDoc(S.doc(db, 'inbox', it.id), it); },
     async removeInbox(ids){ await Promise.all(ids.map(id => S.deleteDoc(S.doc(db, 'inbox', id)))); },
@@ -78,9 +91,30 @@ async function firebaseStore(){
   };
 }
 
-let saveT, dirty = false;
+let saveT, dirty = false, SAVED = null; const KINDS = ['star','done','later','notes','progress','moves','shelfNames','prefs'];
+const clone = o => JSON.parse(JSON.stringify(o));
 function persist(){ dirty = true; clearTimeout(saveT); saveT = setTimeout(flush, 400); }
-function flush(){ clearTimeout(saveT); if (!dirty || !store) return; dirty = false; store.saveState(STATE).catch(() => toast('Saved on this device, will sync when online')); }
+function diffState(){ const ch = [];
+  for (const k of KINDS) { const a = STATE[k] || {}, b = SAVED[k] || {};
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) ch.push([k, key, a[key]]); }
+  return ch; }
+function flush(){ clearTimeout(saveT); if (!dirty || !store || !SAVED) return; dirty = false;
+  const ch = diffState(); if (!ch.length) return;
+  for (const [k, key, v] of ch) { SAVED[k] ||= {}; if (v === undefined) delete SAVED[k][key]; else SAVED[k][key] = clone(v); }
+  store.patch(ch).catch(() => toast('Saved on this device, will sync when online')); }
+// Another device changed something: take their entries, keep our own unsaved edits.
+function mergeRemote(remote){
+  const pending = new Set(dirty ? diffState().map(([k, key]) => k + '/' + key) : []); let changed = false;
+  for (const k of KINDS) { const r = remote[k] || {}; STATE[k] ||= {}; SAVED[k] ||= {};
+    for (const key of new Set([...Object.keys(r), ...Object.keys(SAVED[k])])) {
+      if (pending.has(k + '/' + key)) continue;
+      if (JSON.stringify(STATE[k][key]) !== JSON.stringify(r[key])) {
+        // don't let an older remote position rewind the video playing right here
+        if (k === 'progress' && VW && VW.it.id === key && (STATE.progress[key]?.at || 0) > (r[key]?.at || 0)) continue;
+        if (r[key] === undefined) delete STATE[k][key]; else STATE[k][key] = clone(r[key]); changed = true; }
+      if (r[key] === undefined) delete SAVED[k][key]; else SAVED[k][key] = clone(r[key]); } }
+  if (changed) { applyTheme(); renderAll(false); }
+}
 function onLeave(){ try { saveYtPos(); noteXWatch(); } catch {} flush(); }
 addEventListener('pagehide', onLeave);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') onLeave(); else if (VW) VW.since = Date.now(); });
@@ -344,7 +378,7 @@ async function loadYt(vid, it){
   const start = Math.floor(STATE.progress[it.id]?.t || 0);
   ytPlayer = new YT.Player('yt-slot', { videoId:vid, playerVars:{ start, rel:0, modestbranding:1, playsinline:1 },
     events:{ onStateChange: e => { if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) saveYtPos(); if (e.data === YT.PlayerState.ENDED && !STATE.done[it.id]) { STATE.done[it.id] = Date.now(); persist(); renderVwBar(); toast('Finished, marked done ✓'); } } } });
-  ytTimer = setInterval(saveYtPos, 5000);
+  ytTimer = setInterval(saveYtPos, 10000);
 }
 function saveYtPos(){
   if (!ytPlayer || !VW || typeof ytPlayer.getCurrentTime !== 'function') return;
@@ -683,13 +717,15 @@ function surprise(){
   let st;
   [DATA, st, INBOX] = await Promise.all([store.load(), store.loadState(), store.inbox().catch(() => [])]);
   STATE = { ...blankState(), ...st, prefs: { ...blankState().prefs, ...(st.prefs || {}) } };
+  SAVED = clone(st);
   BASE = DATA.items.slice();
   DATA.items = DATA.items.concat(INBOX.filter(x => !BASE.some(b => b.id === x.id)));
   applyTheme();
   $('#app').hidden = false; $('#bottom').hidden = false;
   wire(); renderChat(); renderAll();
+  store.subscribe(mergeRemote);
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 4 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 5 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
