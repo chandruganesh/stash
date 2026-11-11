@@ -55,7 +55,7 @@ async function firebaseStore(){
     };
     return null;
   }
-  try { await S.getDoc(S.doc(db, 'meta', 'library')); }
+  try { await S.getDocFromServer(S.doc(db, 'meta', 'library')); }
   catch (e) {
     if (e.code === 'permission-denied') {
       lock.hidden = false; msg.textContent = `${user.email} doesn't have access to this vault.`;
@@ -64,18 +64,21 @@ async function firebaseStore(){
       return null;
     }
   }
+  // Read fresh from the server; fall back to this device's copy if offline or slow. (Avoids a multi-tab stall in the SDK.)
+  const timeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  const get = async ref => { try { return await timeout(S.getDocFromServer(ref), 6000); } catch { try { return await S.getDocFromCache(ref); } catch { return { exists: () => false, data: () => undefined, metadata: { fromCache: true } }; } } };
   return {
     who: user.email,
     async load(){
-      const meta = (await S.getDoc(S.doc(db, 'meta', 'library'))).data() || {};
+      const meta = (await get(S.doc(db, 'meta', 'library'))).data() || {};
       let items, fromCache = false;
       if (meta.chunks) { // whole library in a few documents → 1 read per ~400 posts
-        const snaps = await Promise.all(Array.from({ length: meta.chunks }, (_, i) => S.getDoc(S.doc(db, 'lib', 'chunk_' + i))));
+        const snaps = await Promise.all(Array.from({ length: meta.chunks }, (_, i) => get(S.doc(db, 'lib', 'chunk_' + i))));
         items = snaps.flatMap(d => (d.data() || {}).items || []); fromCache = snaps.some(d => d.metadata.fromCache);
       } else { const snap = await S.getDocs(S.collection(db, 'items')); items = snap.docs.map(d => d.data()); fromCache = snap.metadata.fromCache; }
       return { ...meta, items, fromCache };
     },
-    async loadState(){ const d = await S.getDoc(S.doc(db, 'state', 'me')); return d.exists() ? d.data() : blankState(); },
+    async loadState(){ const d = await get(S.doc(db, 'state', 'me')); return d.exists() ? d.data() : blankState(); },
     // Field-level patch: only the entries that changed are written, so devices never overwrite each other.
     async patch(changes){
       const ref = S.doc(db, 'state', 'me'), args = [];
@@ -725,7 +728,7 @@ function surprise(){
   wire(); renderChat(); renderAll();
   store.subscribe(mergeRemote);
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 5 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 6 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
