@@ -5,7 +5,8 @@ const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({ credential: admin.credential.cert(sa) });
 const db = admin.firestore();
 const lib = JSON.parse(readFileSync('data/library.json', 'utf8'));
-await db.doc('meta/library').set({ updated: lib.updated, shelves: lib.shelves });
+const { items: _items, ...meta } = lib;
+await db.doc('meta/library').set(meta);
 const existing = new Set((await db.collection('items').listDocuments()).map(d => d.id));
 let batch = db.batch(), n = 0, added = 0;
 for (const it of lib.items) {
