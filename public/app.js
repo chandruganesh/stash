@@ -20,6 +20,7 @@ const localStore = {
   async loadState(){ try { return JSON.parse(localStorage.getItem('stash-state')) || blankState(); } catch { return blankState(); } },
   async saveState(s){ try { localStorage.setItem('stash-state', JSON.stringify(s)); } catch {} },
   async patch(){ return this.saveState(STATE); },
+  async xmedia(){ return window.__XMEDIA || {}; },
   subscribe(){},
   async inbox(){ try { return JSON.parse(localStorage.getItem('stash-inbox')) || []; } catch { return []; } },
   async addInbox(it){ const a = await this.inbox(); a.push(it); try { localStorage.setItem('stash-inbox', JSON.stringify(a)); } catch {} },
@@ -78,6 +79,7 @@ async function firebaseStore(){
       } else { const snap = await S.getDocs(S.collection(db, 'items')); items = snap.docs.map(d => d.data()); fromCache = snap.metadata.fromCache; }
       return { ...meta, items, fromCache };
     },
+    async xmedia(){ try { const q = await timeout(S.getDocs(S.collection(db, 'xmedia')), 8000); const X = {}; q.docs.forEach(d => Object.assign(X, d.data())); return X; } catch { return {}; } },
     async loadState(){ const d = await get(S.doc(db, 'state', 'me')); return d.exists() ? d.data() : blankState(); },
     // Field-level patch: only the entries that changed are written, so devices never overwrite each other.
     async patch(changes){
@@ -118,7 +120,7 @@ function mergeRemote(remote){
       if (r[key] === undefined) delete SAVED[k][key]; else SAVED[k][key] = clone(r[key]); } }
   if (changed) { applyTheme(); renderAll(false); }
 }
-function onLeave(){ try { saveYtPos(); noteXWatch(); } catch {} flush(); }
+function onLeave(){ try { saveYtPos(); saveVideos(); noteXWatch(); } catch {} flush(); }
 addEventListener('pagehide', onLeave);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') onLeave(); else if (VW) VW.since = Date.now(); });
 
@@ -312,11 +314,71 @@ function noteXWatch(){
   persist();
 }
 
+
+/* ---- native X post rendering (text, photos, video, quoted post, links) ---- */
+const decode = t => String(t || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+function xText(x){
+  const map = Object.fromEntries((x.u || []).map(u => { const d = u.d ?? u[0], url = u.url ?? u[1]; return [url, d]; }));
+  let t = esc(decode(x.t));
+  // t.co links that point to known urls become in-app links; trailing media t.co links are removed
+  const urls = (x.u || []).map(u => u.url ?? u[1]);
+  let i = 0;
+  t = t.replace(/https:\/\/t\.co\/\w+/g, () => { const url = urls[i++]; return url ? `<a href="#" data-vlink="${esc(url)}">${esc((map[url] || url).replace(/…$/, '') )}</a>` : ''; });
+  return t.replace(/\n/g, '<br>').trim();
+}
+function xVideo(v, key){ return `<div class="xvid"><video controls playsinline preload="metadata" poster="${IMG + esc(v.p)}" src="${esc(v.s)}" data-vkey="${esc(key)}"></video></div>`; }
+function xPostHtml(x, it, depth = 0){
+  const ownKey = it ? it.id : 'v:' + x.id;
+  const mainKey = it && !x.v && x.q?.v ? null : ownKey; // the item's "main" video is its own, else the quoted one
+  return `<article class="xpost ${depth ? 'quoted' : ''}">
+    <header><b>${esc(x.n || '')}</b> <span>${esc(x.h)}</span></header>
+    ${x.t ? `<div class="xtext">${xText(x)}</div>` : ''}
+    ${x.v ? xVideo(x.v, mainKey || ('v:' + x.id)) : ''}
+    ${(x.ph || []).length ? `<div class="xphotos n${Math.min(4, x.ph.length)}">${x.ph.map(p => `<img src="${IMG + esc(p)}${p.includes('?') ? '' : '?name=medium'}" alt="" loading="lazy" data-zoom="${IMG + esc(p)}${p.includes('?') ? '' : '?name=large'}">`).join('')}</div>` : ''}
+    ${x.q && depth === 0 ? `<div class="xquote" data-xq="1">${xPostHtml(x.q, null, 1).replace('data-vkey="v:' + x.q.id + '"', 'data-vkey="' + (it && !x.v && x.q.v ? it.id : 'v:' + x.q.id) + '"')}</div>` : ''}
+  </article>`;
+}
+function linkSource(url){
+  if (ytId(url)) return { kind:'yt', label:'▶ Video', id: ytId(url) };
+  const gh = ghRepo(url); if (gh) return { kind:'readme', label:'📦 ' + gh[2], owner:gh[1], repo:gh[2], url };
+  const st = url.match(/(?:x|twitter)\.com\/\w+\/status\/(\d+)/); if (st) return { kind:'tweet', label:'💬 Post', id: st[1] };
+  if (/x\.com\/i\/article\//.test(url)) return { kind:'ext', label:'📰 X Article', url, why:'X Articles can only be read on X, because X requires you to be signed in to read them.' };
+  if (/docs\.google\.com\/spreadsheets\/d\//.test(url)) return { kind:'frame', label:'📊 Sheet', url: url.replace(/\/(edit|view)[^#]*.*$/, '/preview'), ext:url };
+  let host = ''; try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+  return NOFRAME.test(host) ? { kind:'ext', label:'🌐 ' + host, url } : { kind:'frame', label:'🌐 ' + host, url, ext:url };
+}
+function pushView(src){ saveVideos(); VW.stack.push(src); showSource(); }
+let vidTimer = null;
+function wireVideos(){
+  clearInterval(vidTimer);
+  document.querySelectorAll('#vw-body video[data-vkey]').forEach(v => {
+    const key = v.dataset.vkey, pr = STATE.progress[key];
+    v.addEventListener('loadedmetadata', () => { if (pr && pr.t && (!v.duration || pr.t < v.duration - 5)) v.currentTime = pr.t; }, { once:true });
+    v.addEventListener('pause', saveVideos); v.addEventListener('seeked', saveVideos);
+    v.addEventListener('play', () => { document.querySelectorAll('#vw-body video').forEach(o => { if (o !== v) o.pause(); }); });
+    v.addEventListener('ended', () => { if (!key.startsWith('v:') && !STATE.done[key]) { STATE.done[key] = Date.now(); persist(); renderVwBar(); toast('Finished, marked done ✓'); } });
+  });
+  vidTimer = setInterval(saveVideos, 10000);
+}
+function saveVideos(){
+  document.querySelectorAll('#vw-body video[data-vkey]').forEach(v => {
+    if (!v.currentTime || v.currentTime < 2) return;
+    const key = v.dataset.vkey, t = v.currentTime, d = v.duration || 0;
+    const old = STATE.progress[key]; if (old && Math.abs((old.t || 0) - t) < 1) return;
+    STATE.progress[key] = { t, d, at: Date.now() };
+    if (d && t / d > .95 && !key.startsWith('v:')) STATE.done[key] = Date.now();
+    persist();
+  });
+}
+function lightbox(src){ const d = document.createElement('div'); d.className = 'lightbox'; d.innerHTML = `<img src="${esc(src)}" alt="">`; d.onclick = () => d.remove(); document.body.appendChild(d); }
+
 function viewSources(it){
   const src = [];
   const yt = [it.url, ...(it.ln || []).map(l => l[1])].map(ytId).find(Boolean);
   if (yt) src.push({ kind:'yt', label:'▶ Video', id:yt });
-  const tid = tweetId(it); if (tid) src.push({ kind:'tweet', label: it.ty === 'video' && !yt ? '▶ Video post' : '💬 Post', id:tid });
+  const tid = tweetId(it);
+  if (tid && it.x) src.push({ kind:'xpost', label: (it.x.v || it.x.q?.v) ? '▶ Post & video' : '💬 Post', x: it.x });
+  else if (tid) src.push({ kind:'tweet', label: it.ty === 'video' && !yt ? '▶ Video post' : '💬 Post', id:tid });
   for (const [label, u] of [...(it.url && !ytId(it.url) && !tweetId(it) ? [[it.h || 'Link', it.url]] : []), ...(it.ln || [])]) {
     if (ytId(u)) continue;
     const gh = ghRepo(u), host = (() => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } })();
@@ -330,7 +392,7 @@ function viewSources(it){
 function openViewer(id, tab = 0){
   const it = DATA.items.find(i => i.id === id); if (!it) return;
   const srcs = viewSources(it); if (!srcs.length) { window.open(postUrl(it), '_blank'); return; }
-  VW = { it, srcs, tab: Math.min(tab, srcs.length - 1), since: Date.now(), manual: false };
+  VW = { it, srcs, tab: Math.min(tab, srcs.length - 1), since: Date.now(), manual: false, stack: [] };
   closeSheet();
   if (!STATE.progress[id]) { STATE.progress[id] = { t:0, at:Date.now() }; } else STATE.progress[id].at = Date.now();
   persist();
@@ -341,26 +403,29 @@ function openViewer(id, tab = 0){
   showSource();
 }
 function showSource(){
-  stopYt();
-  const { it, srcs, tab } = VW, s = srcs[tab], body = $('#vw-body');
-  [...$('#vw-tabs').children].forEach((b, i) => b.classList.toggle('on', i === tab));
-  $('#vw-ext').href = s.kind === 'yt' ? `https://www.youtube.com/watch?v=${s.id}&t=${Math.floor(STATE.progress[it.id]?.t || 0)}s` : s.kind === 'tweet' ? `https://x.com/i/status/${s.id}` : (s.ext || s.url);
-  if (s.kind === 'yt') { body.innerHTML = `<div class="vw-video"><div id="yt-slot"></div></div>`; loadYt(s.id, it); }
+  stopYt(); clearInterval(vidTimer);
+  const { it, srcs, tab } = VW, s = VW.stack.length ? VW.stack[VW.stack.length - 1] : srcs[tab], body = $('#vw-body');
+  $('#vw-back').innerHTML = VW.stack.length ? '← Back to post' : '← Back';
+  [...$('#vw-tabs').children].forEach((b, i) => b.classList.toggle('on', !VW.stack.length && i === tab));
+  $('#vw-ext').href = s.kind === 'xpost' ? `https://x.com/i/status/${s.x.id}` : s.kind === 'yt' ? `https://www.youtube.com/watch?v=${s.id}&t=${Math.floor(STATE.progress[it.id]?.t || 0)}s` : s.kind === 'tweet' ? `https://x.com/i/status/${s.id}` : (s.ext || s.url);
+  if (s.kind === 'xpost') { body.innerHTML = `<div class="vw-x">${xPostHtml(s.x, VW.stack.length ? null : it)}</div>`; wireVideos(); }
+  else if (s.kind === 'yt') { body.innerHTML = `<div class="vw-video"><div id="yt-slot"></div></div>`; loadYt(s.id, it); }
   else if (s.kind === 'tweet') {
     const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
     body.innerHTML = `<div class="vw-tweet"><iframe src="https://platform.twitter.com/embed/Tweet.html?id=${s.id}&theme=${theme}&dnt=true&hideThread=false" title="Post" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="eager"></iframe></div>`;
   }
   else if (s.kind === 'frame') body.innerHTML = `<div class="vw-frame"><iframe src="${esc(s.url)}" title="${esc(s.label)}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"></iframe><p class="vw-note">Page blank? Some sites don't allow being shown inside other apps. <a href="${esc(s.ext || s.url)}" target="_blank" rel="noopener">Open it outside ↗</a></p></div>`;
   else if (s.kind === 'readme') { body.innerHTML = `<div class="vw-read"><p class="muted">Loading README…</p></div>`; loadReadme(s); }
-  else body.innerHTML = `<div class="vw-read empty"><p><b>${esc(new URL(s.url).hostname)}</b> doesn't allow being opened inside other apps.</p><a class="btn primary" href="${esc(s.url)}" target="_blank" rel="noopener">Open ${esc(new URL(s.url).hostname)} ↗</a></div>`;
+  else body.innerHTML = `<div class="vw-read empty"><p>${s.why ? esc(s.why) : `<b>${esc(new URL(s.url).hostname)}</b> doesn't allow being opened inside other apps.`}</p><a class="btn primary" href="${esc(s.url)}" target="_blank" rel="noopener">Open ${esc(new URL(s.url).hostname)} ↗</a></div>`;
   renderVwBar();
 }
 function renderVwBar(){
   const { it, srcs, tab } = VW, s = srcs[tab], pr = STATE.progress[it.id] || {};
-  const isVid = s.kind === 'yt' || (s.kind === 'tweet' && it.ty === 'video');
+  const s2 = VW.stack.length ? VW.stack[VW.stack.length - 1] : s;
+  const isVid = s2.kind === 'yt' || (s2.kind === 'tweet' && it.ty === 'video');
   $('#vw-bar').innerHTML = `
-    ${isVid && s.kind === 'tweet' ? `<label class="vw-pos">${pr.t ? (pr.est ? 'Last time you watched about' : 'You stopped at') : 'Stopped at'} <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>${pr.t ? `<span class="muted small hide-sm">Drag the video to ${pr.est ? '~' : ''}${fmtClock(pr.t)} to continue</span>` : ''}` : ''}
-    ${isVid && s.kind === 'yt' && pr.t ? `<span class="muted small">Resumes at ${fmtClock(pr.t)}${pr.d ? ' of ' + fmtClock(pr.d) : ''}</span>` : ''}
+    ${isVid && s2.kind === 'tweet' ? `<label class="vw-pos">${pr.t ? (pr.est ? 'Last time you watched about' : 'You stopped at') : 'Stopped at'} <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>${pr.t ? `<span class="muted small hide-sm">Drag the video to ${pr.est ? '~' : ''}${fmtClock(pr.t)} to continue</span>` : ''}` : ''}
+    ${(isVid && s2.kind === 'yt' || s2.kind === 'xpost' && (it.x?.v || it.x?.q?.v)) && pr.t ? `<span class="muted small">Resumes at ${fmtClock(pr.t)}${pr.d ? ' of ' + fmtClock(pr.d) : ''}</span>` : ''}
     <span class="grow"></span>
     ${STATE.progress[it.id] && !STATE.done[it.id] ? `<button class="btn small ghost" data-vact="forget" title="Remove from Continue watching">✕ <span class="hide-sm">Not watching</span></button>` : ''}
     <button class="btn small ${STATE.later[it.id] ? 'primary' : ''}" data-vact="later">⏱ ${STATE.later[it.id] ? 'Queued' : 'Later'}</button>
@@ -368,7 +433,7 @@ function renderVwBar(){
     <button class="btn small ${STATE.done[it.id] ? 'primary' : ''}" data-vact="done">${STATE.done[it.id] ? '✓ Done' : '✓ Mark done'}</button>`;
 }
 function closeViewer(){
-  if (!VW) return; saveYtPos(); stopYt();
+  if (!VW) return; saveYtPos(); saveVideos(); clearInterval(vidTimer); stopYt();
   const pos = $('#vw-pos'), typed = pos && pos.value.trim() && pos.dataset.touched;
   if (typed) { const t = parseClock(pos.value); if (t != null) { STATE.progress[VW.it.id] = { ...STATE.progress[VW.it.id], t, est:0, at:Date.now() }; } }
   else noteXWatch();
@@ -397,8 +462,10 @@ async function loadReadme(s){
     if (!r.ok) throw 0;
     const html = await r.text(), base = `https://github.com/${s.owner}/${s.repo}/blob/HEAD/`;
     const css = `body{font:15px/1.6 system-ui,sans-serif;color:${getComputedStyle(document.body).color};background:transparent;margin:0;padding:4px 2px}a{color:#7c5cff}img{max-width:100%}pre{overflow:auto;background:#8881;padding:12px;border-radius:8px}code{background:#8881;padding:1px 4px;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #8884;padding:4px 8px}`;
-    $('#vw-body').innerHTML = `<div class="vw-frame readme"><iframe sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="README"></iframe></div>`;
-    $('#vw-body iframe').srcdoc = `<base href="${base}" target="_blank"><style>${css}</style>${html}`;
+    $('#vw-body').innerHTML = `<div class="vw-frame readme"><iframe sandbox="allow-same-origin" referrerpolicy="no-referrer" title="README"></iframe></div>`;
+    const fr = $('#vw-body iframe');
+    fr.onload = () => { try { fr.contentDocument.addEventListener('click', ev => { const a = ev.target.closest('a[href]'); if (!a) return; ev.preventDefault(); const h = a.href; if (h.includes('#') && h.split('#')[0] === base) return; pushView(linkSource(h)); }); } catch {} };
+    fr.srcdoc = `<base href="${base}"><style>${css}</style>${html}`;
   } catch { $('#vw-body').innerHTML = `<div class="vw-read empty"><p>Couldn't load the README right now.</p><a class="btn primary" href="${esc(s.url)}" target="_blank" rel="noopener">Open on GitHub ↗</a></div>`; }
 }
 const inProgress = () => DATA.items.filter(i => STATE.progress[i.id] && !STATE.done[i.id] && (i.ty === 'video' || STATE.progress[i.id].t > 0)).sort((a,b) => STATE.progress[b.id].at - STATE.progress[a.id].at);
@@ -667,12 +734,15 @@ function wire(){
     const t = e.target;
     if (t.closest('[data-close]')) { closeSheet(); renderAll(false); return; }
     const pl = t.closest('[data-play],[data-view]'); if (pl) { e.preventDefault(); e.stopPropagation(); openViewer(pl.dataset.play || pl.dataset.view); return; }
-    const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); noteXWatch(); VW.tab = +vt.dataset.vtab; VW.since = Date.now(); showSource(); return; }
+    const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); noteXWatch(); VW.tab = +vt.dataset.vtab; VW.stack = []; VW.since = Date.now(); showSource(); return; }
     const va = t.closest('[data-vact]'); if (va && VW) { const a = va.dataset.vact, id = VW.it.id;
       if (a === 'note') { closeViewer(); openSheet(id); setTimeout(() => $('#note')?.focus(), 50); return; }
       if (a === 'forget') { closeViewer(); delete STATE.progress[id]; persist(); renderAll(false); toast('Removed from Continue watching'); return; }
       if (STATE[a][id]) delete STATE[a][id]; else STATE[a][id] = Date.now(); persist(); renderVwBar(); if (a === 'done' && STATE.done[id]) toast('Marked done ✓'); return; }
-    if (t.closest('#vw-back')) { closeViewer(); return; }
+    if (t.closest('#vw-back')) { if (VW && VW.stack.length) { saveVideos(); VW.stack.pop(); showSource(); } else closeViewer(); return; }
+    const vl = t.closest('[data-vlink]'); if (vl && VW) { e.preventDefault(); pushView(linkSource(vl.dataset.vlink)); return; }
+    const xq = t.closest('[data-xq]'); if (xq && VW && !t.closest('video') && !t.closest('a') && !t.closest('img')) { const cur = VW.stack.length ? VW.stack[VW.stack.length - 1] : VW.srcs[VW.tab]; if (cur.x && cur.x.q) pushView({ kind:'xpost', label:'Quoted post', x: cur.x.q }); return; }
+    const zm = t.closest('[data-zoom]'); if (zm) { lightbox(zm.dataset.zoom); return; }
     const nv = t.closest('[data-nav]'); if (nv) { go(nv.dataset.nav); return; }
     const ex = t.closest('[data-export]'); if (ex) { exportLib(ex.dataset.export); return; }
     const ak = t.closest('[data-ask]'); if (ak) { if (F.nav !== 'ask') go('ask'); sendChat(ak.dataset.ask); return; }
@@ -718,7 +788,10 @@ function surprise(){
   store = CFG.mode === 'firebase' ? await firebaseStore() : localStore;
   if (!store) return;
   let st;
-  [DATA, st, INBOX] = await Promise.all([store.load(), store.loadState(), store.inbox().catch(() => [])]);
+  let XM;
+  [DATA, st, INBOX, XM] = await Promise.all([store.load(), store.loadState(), store.inbox().catch(() => []), store.xmedia().catch(() => ({}))]);
+  for (const it of DATA.items) { const id = tweetId(it), x = id && XM[id]; if (!x) continue; it.x = x;
+    const vid = x.v || x.q?.v; if (vid && vid.m) { it.m = Math.max(1, Math.round(vid.m / 60)); delete it.mx; it.v = 1; } }
   STATE = { ...blankState(), ...st, prefs: { ...blankState().prefs, ...(st.prefs || {}) } };
   SAVED = clone(st);
   BASE = DATA.items.slice();
@@ -728,7 +801,7 @@ function surprise(){
   wire(); renderChat(); renderAll();
   store.subscribe(mergeRemote);
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 7 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 8 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));

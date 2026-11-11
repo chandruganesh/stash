@@ -21,6 +21,16 @@ for (const [name, vp] of [['desktop', { width:1280, height:900 }], ['phone', { w
   ok(await pg.isVisible('#viewer'), `${name}: in-app viewer opens`);
   await pg.click('#vw-back'); await pg.waitForTimeout(200);
   ok(!(await pg.isVisible('#viewer')), `${name}: viewer closes`);
+  await pg.evaluate(() => stash.open('2119426394190909894')); await pg.waitForTimeout(200);
+  ok(await pg.evaluate(() => !!document.querySelector('#vw-body .xpost .xquote video')), `${name}: native post shows quoted post with its video`);
+  await pg.click('#vw-body .xquote .xtext'); await pg.waitForTimeout(150);
+  ok(await pg.evaluate(() => document.getElementById('vw-back').innerText.includes('post')), `${name}: quoted post opens inside Stash`);
+  await pg.click('#vw-back'); await pg.click('#vw-back'); await pg.waitForTimeout(150);
+  await pg.evaluate(() => stash.open('2120146689352986963')); await pg.waitForTimeout(150);
+  await pg.click('#vw-body [data-vlink]'); await pg.waitForTimeout(150);
+  ok(await pg.evaluate(() => !!document.querySelector('#vw-body .vw-frame iframe')), `${name}: link inside a post opens in the in-app viewer`);
+  await pg.click('#vw-back'); await pg.click('#vw-back'); await pg.waitForTimeout(150);
+  ok(!(await pg.isVisible('#viewer')), `${name}: back navigation returns to the library`);
   await pg.click('[data-nav=library] >> visible=true'); await pg.waitForTimeout(200);
   ok(await pg.evaluate(() => document.querySelectorAll('.shelf').length) > 5, `${name}: shelves render`);
   await pg.click('[data-nav=ask] >> visible=true');
