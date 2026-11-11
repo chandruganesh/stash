@@ -308,6 +308,7 @@ function renderVwBar(){
     ${isVid && s.kind === 'tweet' ? `<label class="vw-pos">Stopped at <input id="vw-pos" inputmode="numeric" placeholder="mm:ss" value="${pr.t ? fmtClock(pr.t) : ''}" aria-label="Where you stopped (mm:ss)"></label>` : ''}
     ${isVid && s.kind === 'yt' && pr.t ? `<span class="muted small">Resumes at ${fmtClock(pr.t)}${pr.d ? ' of ' + fmtClock(pr.d) : ''}</span>` : ''}
     <span class="grow"></span>
+    ${STATE.progress[it.id] && !STATE.done[it.id] ? `<button class="btn small ghost" data-vact="forget" title="Remove from Continue watching">✕ <span class="hide-sm">Not watching</span></button>` : ''}
     <button class="btn small ${STATE.later[it.id] ? 'primary' : ''}" data-vact="later">⏱ ${STATE.later[it.id] ? 'Queued' : 'Later'}</button>
     <button class="btn small" data-vact="note">📝 Note</button>
     <button class="btn small ${STATE.done[it.id] ? 'primary' : ''}" data-vact="done">${STATE.done[it.id] ? '✓ Done' : '✓ Mark done'}</button>`;
@@ -612,6 +613,7 @@ function wire(){
     const vt = t.closest('[data-vtab]'); if (vt) { saveYtPos(); VW.tab = +vt.dataset.vtab; showSource(); return; }
     const va = t.closest('[data-vact]'); if (va && VW) { const a = va.dataset.vact, id = VW.it.id;
       if (a === 'note') { closeViewer(); openSheet(id); setTimeout(() => $('#note')?.focus(), 50); return; }
+      if (a === 'forget') { closeViewer(); delete STATE.progress[id]; persist(); renderAll(false); toast('Removed from Continue watching'); return; }
       if (STATE[a][id]) delete STATE[a][id]; else STATE[a][id] = Date.now(); persist(); renderVwBar(); if (a === 'done' && STATE.done[id]) toast('Marked done ✓'); return; }
     if (t.closest('#vw-back')) { closeViewer(); return; }
     const nv = t.closest('[data-nav]'); if (nv) { go(nv.dataset.nav); return; }
@@ -667,7 +669,7 @@ function surprise(){
   $('#app').hidden = false; $('#bottom').hidden = false;
   wire(); renderChat(); renderAll();
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, version: 3 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 4 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
