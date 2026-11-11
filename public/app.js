@@ -564,5 +564,9 @@ function surprise(){
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
   if (P.has('url') || P.has('text') || P.has('add')) openAdd({ url: P.get('url') || '', title: P.get('title') || '', text: P.get('text') || '' });
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    const hadCtl = !!navigator.serviceWorker.controller; let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadCtl && !reloaded) { reloaded = true; location.reload(); } }); // new version → refresh once
+    navigator.serviceWorker.register('sw.js').then(r => r.update());
+  }
 })();
