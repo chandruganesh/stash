@@ -86,7 +86,7 @@ async function firebaseStore(){
       try { await S.updateDoc(ref, ...args); }
       catch (e) { if (e.code === 'not-found') { await S.setDoc(ref, blankState()); await S.updateDoc(ref, ...args); } else throw e; }
     },
-    subscribe(cb){ return S.onSnapshot(S.doc(db, 'state', 'me'), d => { if (!d.metadata.hasPendingWrites && d.exists()) cb(d.data()); }); },
+    subscribe(cb){ return S.onSnapshot(S.doc(db, 'state', 'me'), { includeMetadataChanges: true }, d => { if (!d.metadata.hasPendingWrites && d.exists()) cb(d.data()); }); },
     async inbox(){ const q = await S.getDocs(S.collection(db, 'inbox')); return q.docs.map(d => d.data()); },
     async addInbox(it){ await S.setDoc(S.doc(db, 'inbox', it.id), it); },
     async removeInbox(ids){ await Promise.all(ids.map(id => S.deleteDoc(S.doc(db, 'inbox', id)))); },
@@ -728,7 +728,7 @@ function surprise(){
   wire(); renderChat(); renderAll();
   store.subscribe(mergeRemote);
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 6 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 7 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
