@@ -356,3 +356,9 @@ textarea:focus,.add-form input:focus{border-color:var(--acc)}
 .xquote:hover .xpost.quoted{border-color:var(--acc)}
 .lightbox{position:fixed;inset:0;z-index:90;background:#000e;display:grid;place-items:center;cursor:zoom-out;animation:fade .15s}
 .lightbox img{max-width:96vw;max-height:94vh;object-fit:contain}
+
+.xvid{position:relative}
+.vstat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#000c;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:.9rem;max-width:90%;text-align:center}
+.vstat .btn{color:#fff;border-color:#fff4}
+.spin{width:16px;height:16px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}

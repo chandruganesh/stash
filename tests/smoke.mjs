@@ -23,6 +23,9 @@ for (const [name, vp] of [['desktop', { width:1280, height:900 }], ['phone', { w
   ok(!(await pg.isVisible('#viewer')), `${name}: viewer closes`);
   await pg.evaluate(() => stash.open('2119426394190909894')); await pg.waitForTimeout(200);
   ok(await pg.evaluate(() => !!document.querySelector('#vw-body .xpost .xquote video')), `${name}: native post shows quoted post with its video`);
+  await pg.evaluate(() => { const v = document.querySelector('#vw-body video'); v.play().catch(() => {}); });
+  await pg.waitForTimeout(800);
+  ok(await pg.evaluate(() => { const b = document.querySelector('#vw-body .vstat'); return b && !b.hidden && !!b.querySelector('[data-vretry]') && !!b.querySelector('[data-vxplayer]'); }), `${name}: unplayable video shows Retry + X player options (no blank player)`);
   await pg.click('#vw-body .xquote .xtext'); await pg.waitForTimeout(150);
   ok(await pg.evaluate(() => document.getElementById('vw-back').innerText.includes('post')), `${name}: quoted post opens inside Stash`);
   await pg.click('#vw-back'); await pg.click('#vw-back'); await pg.waitForTimeout(150);

@@ -326,7 +326,7 @@ function xText(x){
   t = t.replace(/https:\/\/t\.co\/\w+/g, () => { const url = urls[i++]; return url ? `<a href="#" data-vlink="${esc(url)}">${esc((map[url] || url).replace(/…$/, '') )}</a>` : ''; });
   return t.replace(/\n/g, '<br>').trim();
 }
-function xVideo(v, key){ return `<div class="xvid"><video controls playsinline preload="metadata" poster="${IMG + esc(v.p)}" src="${esc(v.s)}" data-vkey="${esc(key)}"></video></div>`; }
+function xVideo(v, key){ return `<div class="xvid"><video controls playsinline preload="none" poster="${IMG + esc(v.p)}" src="${esc(v.s)}" data-vkey="${esc(key)}"></video><div class="vstat" hidden></div></div>`; }
 function xPostHtml(x, it, depth = 0){
   const ownKey = it ? it.id : 'v:' + x.id;
   const mainKey = it && !x.v && x.q?.v ? null : ownKey; // the item's "main" video is its own, else the quoted one
@@ -351,14 +351,35 @@ function pushView(src){ saveVideos(); VW.stack.push(src); showSource(); }
 let vidTimer = null;
 function wireVideos(){
   clearInterval(vidTimer);
-  document.querySelectorAll('#vw-body video[data-vkey]').forEach(v => {
+  const vids = [...document.querySelectorAll('#vw-body video[data-vkey]')];
+  if (vids[0]) vids[0].preload = 'metadata'; // only the main video starts loading; others load when played
+  vids.forEach(v => {
     const key = v.dataset.vkey, pr = STATE.progress[key];
+    guardVideo(v);
     v.addEventListener('loadedmetadata', () => { if (pr && pr.t && (!v.duration || pr.t < v.duration - 5)) v.currentTime = pr.t; }, { once:true });
     v.addEventListener('pause', saveVideos); v.addEventListener('seeked', saveVideos);
     v.addEventListener('play', () => { document.querySelectorAll('#vw-body video').forEach(o => { if (o !== v) o.pause(); }); });
     v.addEventListener('ended', () => { if (!key.startsWith('v:') && !STATE.done[key]) { STATE.done[key] = Date.now(); persist(); renderVwBar(); toast('Finished, marked done ✓'); } });
   });
   vidTimer = setInterval(saveVideos, 10000);
+}
+// Slow/stalled network: show status, retry automatically once, then offer Retry or X's own player (still inside Stash).
+function guardVideo(v){
+  const box = v.parentNode.querySelector('.vstat'); let timer = null, retried = false;
+  const show = html => { box.innerHTML = html; box.hidden = !html; };
+  const arm = () => { clearTimeout(timer); timer = setTimeout(() => {
+    if (v.readyState >= 3) return;
+    if (!retried) { retried = true; const t = v.currentTime; show('<span>Slow connection, retrying…</span>'); v.load(); v.addEventListener('loadedmetadata', () => { if (t) v.currentTime = t; }, { once:true }); v.play().catch(() => {}); arm(); return; }
+    show(`<span>This video is taking too long to load.</span><button class="btn small" data-vretry>↻ Retry</button>${VW && tweetId(VW.it) ? `<button class="btn small" data-vxplayer>Play with X's player</button>` : ''}`);
+  }, 12000); };
+  v.addEventListener('play', () => { if (v.readyState < 3) { show('<span class="spin"></span><span>Loading video…</span>'); arm(); } });
+  v.addEventListener('waiting', () => { show('<span class="spin"></span><span>Buffering…</span>'); arm(); });
+  ['playing','canplay','pause'].forEach(ev => v.addEventListener(ev, () => { if (ev !== 'pause' || v.readyState >= 3) { clearTimeout(timer); show(''); } }));
+  v.addEventListener('error', () => { clearTimeout(timer); show(`<span>Couldn't play this video right now.</span><button class="btn small" data-vretry>↻ Retry</button>${VW && tweetId(VW.it) ? `<button class="btn small" data-vxplayer>Play with X's player</button>` : ''}`); });
+  box.addEventListener('click', e => {
+    if (e.target.closest('[data-vretry]')) { retried = false; show('<span class="spin"></span><span>Retrying…</span>'); v.load(); v.play().catch(() => {}); arm(); }
+    if (e.target.closest('[data-vxplayer]')) { const cur = VW.stack.length ? VW.stack[VW.stack.length - 1] : VW.srcs[VW.tab]; pushView({ kind:'tweet', label:'X player', id: (cur.x && cur.x.id) || tweetId(VW.it) }); }
+  });
 }
 function saveVideos(){
   document.querySelectorAll('#vw-body video[data-vkey]').forEach(v => {
@@ -801,7 +822,7 @@ function surprise(){
   wire(); renderChat(); renderAll();
   store.subscribe(mergeRemote);
   // Expose a tiny API for the nightly sync (runs in the signed-in browser pane).
-  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 8 };
+  window.stash = { inbox: () => store.inbox(), removeInbox: ids => store.removeInbox(ids), open: openViewer, details: openSheet, forget: id => { delete STATE.progress[id]; persist(); renderAll(false); }, version: 9 };
   // Incoming share (Android share sheet) or bookmarklet
   const P = new URLSearchParams(location.search);
   if (P.get('nav')) go(P.get('nav'));
