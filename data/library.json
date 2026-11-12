@@ -1,5 +1,5 @@
 {
-"updated": "2026-11-11",
+"updated": "2026-11-12",
 "shelves": {
 "agents": {
 "name": "AI Agents & Harness Engineering",
@@ -2093,6 +2093,43 @@
 "v": 1,
 "m": 60,
 "a": "2026-10-21"
+},
+{
+"id": "2120207132410908995",
+"u": "sammy_capital/status/2120207132410908995",
+"h": "@sammy_capital",
+"d": "2026-11-10",
+"a": "2026-11-12",
+"s": "bl",
+"sh": "agents",
+"ty": "image",
+"ti": "Harness engineering reading list — OpenAI, Mitchell Hashimoto and more",
+"su": "A curated starting list on harness engineering, opening with OpenAI’s write-up on shipping a million lines of agent-written code and Mitchell Hashimoto’s AI workflow; the full list is in the attached image.",
+"ln": [
+[
+"openai.com — Harness Engineering",
+"https://openai.com/index/harness-engineering/"
+]
+],
+"im": "media/HWx9JG2XIAAkcr9.jpg",
+"m": 10,
+"mx": 1
+},
+{
+"id": "2119068855867736105",
+"u": "n0tisma/status/2119068855867736105",
+"h": "@n0tisma",
+"d": "2026-11-07",
+"a": "2026-11-12",
+"s": "bl",
+"sh": "claude",
+"ty": "video",
+"ti": "Complete Claude course in Spanish (67 min)",
+"su": "A one-hour Spanish-language walkthrough of using Claude to build and automate tasks.",
+"ln": [],
+"im": "amplify_video_thumb/2118944619085877248/img/UXGZhCvVnloQPtCG.jpg",
+"v": 1,
+"m": 67
 }
 ],
 "paths": {
@@ -2108,6 +2145,7 @@
 ],
 "agents": [
 "2116862056708317397",
+"2120207132410908995",
 "2117689327203537165",
 "2120024020699754887",
 "2118419644209828151",
