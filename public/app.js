@@ -193,8 +193,8 @@ function renderStats(){
 }
 
 function pickToday(){
-  const busy = new Set(inProgress().map(i => i.id));
-  const pool = dedupe(DATA.items.filter(i => visible(i) && !STATE.done[i.id] && !busy.has(i.id)));
+  const busy = new Set(inProgress().map(i => i.id)), busyG = new Set(inProgress().filter(i => i.g).map(i => i.g));
+  const pool = dedupe(DATA.items.filter(i => visible(i) && !STATE.done[i.id] && !busy.has(i.id) && !(i.g && busyG.has(i.g))));
   const seed = today() + ':' + F.todaySalt, pick = types => seeded(pool.filter(i => types.includes(i.ty)), seed)[0];
   return [['🎬 Watch', pick(['video'])], ['📖 Read', pick(READ)], ['🛠️ Try', pick(TRY)]].filter(x => x[1]);
 }
@@ -208,7 +208,8 @@ function renderContinue(){
 }
 function renderFresh(){
   const shown = new Set([...pickToday().map(x => x[1].id), ...inProgress().map(i => i.id), ...DATA.items.filter(i => STATE.notes[i.id]).map(i => i.id)]);
-  const f = dedupe(DATA.items.filter(i => visible(i) && isFresh(i) && !STATE.done[i.id] && !shown.has(i.id)).sort((a,b) => (b.a||b.d).localeCompare(a.a||a.d) || b.d.localeCompare(a.d)));
+  const shownG = new Set(DATA.items.filter(i => shown.has(i.id) && i.g).map(i => i.g));
+  const f = dedupe(DATA.items.filter(i => visible(i) && isFresh(i) && !STATE.done[i.id] && !shown.has(i.id) && !(i.g && shownG.has(i.g))).sort((a,b) => (b.a||b.d).localeCompare(a.a||a.d) || b.d.localeCompare(a.d)));
   $('#fresh-block').hidden = !f.length;
   $('#see-new').textContent = f.length > 8 ? `See all ${f.length} new →` : 'See all new →';
   $('#fresh').innerHTML = f.slice(0, 8).map(x => card(x)).join('');

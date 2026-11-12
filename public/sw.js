@@ -1,6 +1,6 @@
 // Stash service worker: app shell network-first, static libs + thumbnails cache-first (for offline use).
-const SHELL = 'stash-shell-v14', ASSETS = 'stash-assets-v2';
-const PRE = ['/', '/index.html', '/style.css?v=12', '/app.js?v=12', '/config.js?v=12', '/icon.svg', '/icon-192.png', '/manifest.webmanifest'];
+const SHELL = 'stash-shell-v15', ASSETS = 'stash-assets-v2';
+const PRE = ['/', '/index.html', '/style.css?v=13', '/app.js?v=13', '/config.js?v=13', '/icon.svg', '/icon-192.png', '/manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(PRE))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => ![SHELL, ASSETS].includes(x)).map(x => caches.delete(x))))); self.clients.claim(); });
 self.addEventListener('fetch', e => {

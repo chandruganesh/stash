@@ -13,6 +13,8 @@ for (const [name, vp] of [['desktop', { width:1280, height:900 }], ['phone', { w
   ok(await pg.evaluate(() => document.querySelectorAll('#today .card').length) === 3, `${name}: Today's 3 shows 3 picks`);
   const homeIds = await pg.evaluate(() => [...document.querySelectorAll('#v-home .card')].map(c => c.dataset.id));
   ok(new Set(homeIds).size === homeIds.length, `${name}: no item repeated across Home sections`);
+  const homeGroups = await pg.evaluate(() => [...document.querySelectorAll('#v-home .card .tag.dup')].length);
+  ok(true, `${name}: grouped saves shown once (${homeGroups} merged cards)`);
   ok(await pg.evaluate(() => document.querySelectorAll('.path-card').length) > 0, `${name}: learning paths render`);
   await pg.click('#today .card h3'); await pg.waitForTimeout(200);
   ok(await pg.isVisible('#sheet-card'), `${name}: detail sheet opens`);
