@@ -425,7 +425,8 @@
 "im": "amplify_video_thumb/2119082013994909696/img/B_cOy5OC2pwnmGeN.jpg",
 "v": 1,
 "m": 60,
-"a": "2026-11-07"
+"a": "2026-11-07",
+"g": "claude-1h-course"
 },
 {
 "id": "2119098703034110277",
@@ -2129,7 +2130,8 @@
 "ln": [],
 "im": "amplify_video_thumb/2118944619085877248/img/UXGZhCvVnloQPtCG.jpg",
 "v": 1,
-"m": 67
+"m": 67,
+"g": "claude-1h-course"
 }
 ],
 "paths": {
